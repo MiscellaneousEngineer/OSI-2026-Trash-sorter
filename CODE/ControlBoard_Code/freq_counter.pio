@@ -1,37 +1,39 @@
 .program freq_counter
 
 .wrap_target
-set x, 4      ; Outer counter (4)  
-set y, 25     ; Inner counter (25)  
-outer_loop:  
-inner_loop:  
-    wait 1 pin 0
-    in pins, 1
-    jmp y--, inner_loop  ; Count 25 cycles  
-      
-    ; Inner loop complete, 25 cycles passed  
-    set y, 25            ; Reset inner counter  
-    jmp x--, outer_loop  ; Decrement outer counter  
-push block
+wait 0 gpio 15
+wait 1 gpio 15
+jmp x-- edge
+edge:
+
+mov isr, x
+push noblock
 .wrap
 
 
 
-
-
-
 % c-sdk {
-
-void freq_counter_program_init(PIO pio, uint sm, uint offset, uint pin) {
+// this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
+static inline void freq_counter_program_init(PIO pio, uint sm, uint offset, uint pin) {
 
     pio_sm_config c = freq_counter_program_get_default_config(offset);
 
+    // Set the IN base pin to the provided `pin` parameter. This is the data
+    // pin, and the next-numbered GPIO is used as the clock pin.
     sm_config_set_in_pins(&c, pin);
+    // Set the pin directions to input at the PIO
     pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, false);
-    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    // Connect these GPIOs to this PIO block
     pio_gpio_init(pio, pin);
+    pio_gpio_init(pio, pin + 1);
+
+
+    // We only receive, so disable the TX FIFO to make the RX FIFO deeper.
+   //sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+
+    // Load our configuration, and start the program from the beginning
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
-}
 
+}
 %}
