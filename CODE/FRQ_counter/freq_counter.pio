@@ -1,0 +1,11 @@
+.program freq_counter
+
+.wrap_target
+
+wait 1 pin 0
+
+push block
+
+.wrap
+
+

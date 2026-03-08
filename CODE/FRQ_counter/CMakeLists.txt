@@ -23,50 +23,43 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD myboard)
-set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/boards)
+set(PICO_BOARD pico2 CACHE STRING "Board type")
+
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(ControlBoard_Code C CXX ASM)
+project(FRQ_counter C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(ControlBoard_Code ControlBoard_Code.c )
+add_executable(FRQ_counter FRQ_counter.c )
 
-pico_set_program_name(ControlBoard_Code "ControlBoard_Code")
-pico_set_program_version(ControlBoard_Code "0.1")
+pico_set_program_name(FRQ_counter "FRQ_counter")
+pico_set_program_version(FRQ_counter "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(ControlBoard_Code ${CMAKE_CURRENT_LIST_DIR}/freq_counter.pio)
+pico_generate_pio_header(FRQ_counter ${CMAKE_CURRENT_LIST_DIR}/freq_counter.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(ControlBoard_Code 0)
-pico_enable_stdio_usb(ControlBoard_Code 1)
-
-
+pico_enable_stdio_uart(FRQ_counter 0)
+pico_enable_stdio_usb(FRQ_counter 1)
 
 # Add the standard library to the build
-target_link_libraries(ControlBoard_Code
+target_link_libraries(FRQ_counter
         pico_stdlib)
 
-set(TFT_DRIVER st7735 CACHE STRING "TFT Driver")
-add_subdirectory(lib/pico-tft)
-
 # Add the standard include files to the build
-target_include_directories(ControlBoard_Code PRIVATE
+target_include_directories(FRQ_counter PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
-target_link_libraries(ControlBoard_Code 
-        hardware_spi
+target_link_libraries(FRQ_counter 
         hardware_pio
-        pico_tft
         )
 
-pico_add_extra_outputs(ControlBoard_Code)
+pico_add_extra_outputs(FRQ_counter)
 

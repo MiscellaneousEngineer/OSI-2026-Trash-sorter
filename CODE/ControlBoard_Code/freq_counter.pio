@@ -1,10 +1,37 @@
-; freq_counter.pio
-; Simple edge counter
 .program freq_counter
-.side_set 0
 
-; Wait for rising edge, increment ISR, push to FIFO periodically
-wait_edge:
-    wait 1 pin 15       ; wait until pin is high
-    in pins, 1         ; shift pin value into ISR (1 bit)
-    jmp wait_edge      ; loop
+.wrap_target
+set x, 4      ; Outer counter (4)  
+set y, 25     ; Inner counter (25)  
+outer_loop:  
+inner_loop:  
+    wait 1 pin 0
+    in pins, 1
+    jmp y--, inner_loop  ; Count 25 cycles  
+      
+    ; Inner loop complete, 25 cycles passed  
+    set y, 25            ; Reset inner counter  
+    jmp x--, outer_loop  ; Decrement outer counter  
+push block
+.wrap
+
+
+
+
+
+
+% c-sdk {
+
+void freq_counter_program_init(PIO pio, uint sm, uint offset, uint pin) {
+
+    pio_sm_config c = freq_counter_program_get_default_config(offset);
+
+    sm_config_set_in_pins(&c, pin);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, false);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    pio_gpio_init(pio, pin);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

@@ -1,5 +1,5 @@
 C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/CMakeFiles/ControlBoard_Code.dir
-C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/CMakeFiles/ControlBoard_Code_blink_pio_h.dir
+C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/CMakeFiles/ControlBoard_Code_freq_counter_pio_h.dir
 C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/CMakeFiles/edit_cache.dir
 C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/CMakeFiles/rebuild_cache.dir
 C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/CMakeFiles/edit_cache.dir
