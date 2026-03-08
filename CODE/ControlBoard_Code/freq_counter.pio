@@ -1,0 +1,10 @@
+; freq_counter.pio
+; Simple edge counter
+.program freq_counter
+.side_set 0
+
+; Wait for rising edge, increment ISR, push to FIFO periodically
+wait_edge:
+    wait 1 pin 15       ; wait until pin is high
+    in pins, 1         ; shift pin value into ISR (1 bit)
+    jmp wait_edge      ; loop

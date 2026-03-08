@@ -23,8 +23,8 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
-
+set(PICO_BOARD myboard)
+set(PICO_BOARD_HEADER_DIRS ${CMAKE_CURRENT_LIST_DIR}/include/boards)
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
@@ -47,9 +47,14 @@ pico_generate_pio_header(ControlBoard_Code ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
 pico_enable_stdio_uart(ControlBoard_Code 0)
 pico_enable_stdio_usb(ControlBoard_Code 1)
 
+
+
 # Add the standard library to the build
 target_link_libraries(ControlBoard_Code
         pico_stdlib)
+
+set(TFT_DRIVER st7735 CACHE STRING "TFT Driver")
+add_subdirectory(lib/pico-tft)
 
 # Add the standard include files to the build
 target_include_directories(ControlBoard_Code PRIVATE
@@ -60,6 +65,7 @@ target_include_directories(ControlBoard_Code PRIVATE
 target_link_libraries(ControlBoard_Code 
         hardware_spi
         hardware_pio
+        pico_tft
         )
 
 pico_add_extra_outputs(ControlBoard_Code)
