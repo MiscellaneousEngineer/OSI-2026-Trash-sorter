@@ -15,6 +15,34 @@ uint T1 = 0;
 uint T = 0;
 uint F = 0;
 
+void graphfreq(uint16_t x, uint16_t y, uint16_t x color,uint16_t freq){
+uint localT;
+localT=1/freq;
+int plot[];
+bool state = 1;
+    
+if(freq>1000000)//MHZ operation
+{//screen witdh is equal to 128 µS in MHZ mode
+localT = localT * 1000000; //convert from S to µs
+for(i = 127,i != 0, i--){
+
+    for(i = localT,i !=0,i--)
+    {
+        
+    }
+
+}
+
+    
+}elif(freq>1000)//KHZ mode
+{
+
+}else//HZ mode
+{
+    
+}
+
+}
 int main()
 {
 
