@@ -66,6 +66,7 @@ target_link_libraries(ControlBoard_Code
         hardware_spi
         hardware_pio
         pico_tft
+        hardware_pwm   
         )
 
 pico_add_extra_outputs(ControlBoard_Code)
