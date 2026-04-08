@@ -4976,7 +4976,6 @@ LOAD linker stubs
  .comment       0x00000045       0x46 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
  .comment       0x00000045       0x46 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
 
-<<<<<<< Updated upstream
 .debug_info     0x00000000    0x3731c
  .debug_info    0x00000000     0x2554 CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
  .debug_info    0x00002554     0x1c5b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
@@ -5074,105 +5073,6 @@ LOAD linker stubs
  .debug_abbrev  0x0000957c       0x5a CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
  .debug_abbrev  0x000095d6       0xd7 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
  .debug_abbrev  0x000096ad      0x30a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
-=======
-.debug_info     0x00000000    0x36144
- .debug_info    0x00000000     0x137c CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
- .debug_info    0x0000137c     0x1c5b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
- .debug_info    0x00002fd7      0x1b3 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_platform_panic/panic.c.obj
- .debug_info    0x0000318a      0x745 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/hardware_claim/claim.c.obj
- .debug_info    0x000038cf      0x47d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync/sync.c.obj
- .debug_info    0x00003d4c     0x152a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync_spin_lock/sync_spin_lock.c.obj
- .debug_info    0x00005276     0x2427 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_irq/irq.c.obj
- .debug_info    0x0000769d      0x1cf CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/lock_core.c.obj
- .debug_info    0x0000786c     0x1f13 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/mutex.c.obj
- .debug_info    0x0000977f      0x340 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/critical_section.c.obj
- .debug_info    0x00009abf     0x3879 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_time/time.c.obj
- .debug_info    0x0000d338     0x1ea5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_timer/timer.c.obj
- .debug_info    0x0000f1dd     0x167c CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_clocks/clocks.c.obj
- .debug_info    0x00010859      0x67c CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pll/pll.c.obj
- .debug_info    0x00010ed5      0x8ea CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_watchdog/watchdog.c.obj
- .debug_info    0x000117bf      0x2d6 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_ticks/ticks.c.obj
- .debug_info    0x00011a95     0x1030 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom.c.obj
- .debug_info    0x00012ac5      0x1d5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom_lock.c.obj
- .debug_info    0x00012c9a      0x334 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_boot_lock/boot_lock.c.obj
- .debug_info    0x00012fce      0x1b5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_xosc/xosc.c.obj
- .debug_info    0x00013183      0x1bc CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime/runtime.c.obj
- .debug_info    0x0001333f     0x1c5d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init.c.obj
- .debug_info    0x00014f9c      0x7b0 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init_clocks.c.obj
- .debug_info    0x0001574c       0x23 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_double/double_aeabi_dcp.S.obj
- .debug_info    0x0001576f      0x2e2 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_standard_binary_info/standard_binary_info.c.obj
- .debug_info    0x00015a51     0x1959 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_printf/printf.c.obj
- .debug_info    0x000173aa       0x23 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_crt0/crt0.S.obj
- .debug_info    0x000173cd      0xcab CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_clib_interface/newlib_interface.c.obj
- .debug_info    0x00018078     0x14aa CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio/stdio.c.obj
- .debug_info    0x00019522      0xab7 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/reset_interface.c.obj
- .debug_info    0x00019fd9     0x1ea3 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb.c.obj
- .debug_info    0x0001be7c      0x72f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb_descriptors.c.obj
- .debug_info    0x0001c5ab      0x38f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_unique_id/unique_id.c.obj
- .debug_info    0x0001c93a     0x2ae9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/dcd_rp2040.c.obj
- .debug_info    0x0001f423     0x1324 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/rp2040_usb.c.obj
- .debug_info    0x00020747     0x4f00 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd.c.obj
- .debug_info    0x00025647      0xc13 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd_control.c.obj
- .debug_info    0x0002625a     0x2119 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/cdc/cdc_device.c.obj
- .debug_info    0x00028373     0x1744 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/vendor/vendor_device.c.obj
- .debug_info    0x00029ab7     0x24b1 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/tusb.c.obj
- .debug_info    0x0002bf68     0x224a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/common/tusb_fifo.c.obj
- .debug_info    0x0002e1b2     0x1340 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_spi/spi.c.obj
- .debug_info    0x0002f4f2     0x2d8f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pio/pio.c.obj
- .debug_info    0x00032281     0x2fcb CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/tft.c.obj
- .debug_info    0x0003524c       0xa0 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
- .debug_info    0x000352ec      0x275 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
- .debug_info    0x00035561      0xbe3 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
-
-.debug_abbrev   0x00000000     0x97f5
- .debug_abbrev  0x00000000      0x45b CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
- .debug_abbrev  0x0000045b      0x48d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
- .debug_abbrev  0x000008e8      0x12d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_platform_panic/panic.c.obj
- .debug_abbrev  0x00000a15      0x2c8 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/hardware_claim/claim.c.obj
- .debug_abbrev  0x00000cdd      0x1f8 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync/sync.c.obj
- .debug_abbrev  0x00000ed5      0x2a1 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync_spin_lock/sync_spin_lock.c.obj
- .debug_abbrev  0x00001176      0x5d5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_irq/irq.c.obj
- .debug_abbrev  0x0000174b      0x130 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/lock_core.c.obj
- .debug_abbrev  0x0000187b      0x44b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/mutex.c.obj
- .debug_abbrev  0x00001cc6      0x213 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/critical_section.c.obj
- .debug_abbrev  0x00001ed9      0x632 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_time/time.c.obj
- .debug_abbrev  0x0000250b      0x4b4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_timer/timer.c.obj
- .debug_abbrev  0x000029bf      0x477 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_clocks/clocks.c.obj
- .debug_abbrev  0x00002e36      0x1f8 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pll/pll.c.obj
- .debug_abbrev  0x0000302e      0x319 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_watchdog/watchdog.c.obj
- .debug_abbrev  0x00003347      0x153 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_ticks/ticks.c.obj
- .debug_abbrev  0x0000349a      0x498 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom.c.obj
- .debug_abbrev  0x00003932      0x12b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom_lock.c.obj
- .debug_abbrev  0x00003a5d      0x200 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_boot_lock/boot_lock.c.obj
- .debug_abbrev  0x00003c5d      0x10b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_xosc/xosc.c.obj
- .debug_abbrev  0x00003d68      0x149 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime/runtime.c.obj
- .debug_abbrev  0x00003eb1      0x2f9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init.c.obj
- .debug_abbrev  0x000041aa      0x2c3 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init_clocks.c.obj
- .debug_abbrev  0x0000446d       0x12 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_double/double_aeabi_dcp.S.obj
- .debug_abbrev  0x0000447f       0xb8 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_standard_binary_info/standard_binary_info.c.obj
- .debug_abbrev  0x00004537      0x382 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_printf/printf.c.obj
- .debug_abbrev  0x000048b9       0x12 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_crt0/crt0.S.obj
- .debug_abbrev  0x000048cb      0x35f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_clib_interface/newlib_interface.c.obj
- .debug_abbrev  0x00004c2a      0x512 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio/stdio.c.obj
- .debug_abbrev  0x0000513c      0x327 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/reset_interface.c.obj
- .debug_abbrev  0x00005463      0x609 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb.c.obj
- .debug_abbrev  0x00005a6c      0x16e CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb_descriptors.c.obj
- .debug_abbrev  0x00005bda      0x1ca CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_unique_id/unique_id.c.obj
- .debug_abbrev  0x00005da4      0x59c CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/dcd_rp2040.c.obj
- .debug_abbrev  0x00006340      0x435 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/rp2040_usb.c.obj
- .debug_abbrev  0x00006775      0x73b CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd.c.obj
- .debug_abbrev  0x00006eb0      0x3b1 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd_control.c.obj
- .debug_abbrev  0x00007261      0x569 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/cdc/cdc_device.c.obj
- .debug_abbrev  0x000077ca      0x446 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/vendor/vendor_device.c.obj
- .debug_abbrev  0x00007c10      0x544 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/tusb.c.obj
- .debug_abbrev  0x00008154      0x412 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/common/tusb_fifo.c.obj
- .debug_abbrev  0x00008566      0x357 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_spi/spi.c.obj
- .debug_abbrev  0x000088bd      0x513 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pio/pio.c.obj
- .debug_abbrev  0x00008dd0      0x5ea CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/tft.c.obj
- .debug_abbrev  0x000093ba       0x5a CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
- .debug_abbrev  0x00009414       0xd7 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
- .debug_abbrev  0x000094eb      0x30a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
->>>>>>> Stashed changes
 
 .debug_loclists
                 0x00000000    0x145dd
@@ -5446,7 +5346,6 @@ LOAD linker stubs
  .debug_rnglists
                 0x00001bdc       0x61 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
 
-<<<<<<< Updated upstream
 .debug_line     0x00000000    0x1d819
  .debug_line    0x00000000      0xed8 CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
  .debug_line    0x00000ed8      0xdfa CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
@@ -5545,106 +5444,6 @@ LOAD linker stubs
  .debug_str     0x0000a938      0x1ef CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
  .debug_str     0x0000a938      0x25a CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
  .debug_str     0x0000a938      0x6cb CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
-=======
-.debug_line     0x00000000    0x1d181
- .debug_line    0x00000000      0x840 CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
- .debug_line    0x00000840      0xdfa CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
- .debug_line    0x0000163a      0x21d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_platform_panic/panic.c.obj
- .debug_line    0x00001857      0x581 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/hardware_claim/claim.c.obj
- .debug_line    0x00001dd8      0x3b6 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync/sync.c.obj
- .debug_line    0x0000218e      0x3da CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync_spin_lock/sync_spin_lock.c.obj
- .debug_line    0x00002568     0x1204 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_irq/irq.c.obj
- .debug_line    0x0000376c      0x266 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/lock_core.c.obj
- .debug_line    0x000039d2     0x1036 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/mutex.c.obj
- .debug_line    0x00004a08      0x355 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/critical_section.c.obj
- .debug_line    0x00004d5d     0x1ded CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_time/time.c.obj
- .debug_line    0x00006b4a      0xfe9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_timer/timer.c.obj
- .debug_line    0x00007b33      0xc1f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_clocks/clocks.c.obj
- .debug_line    0x00008752      0x574 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pll/pll.c.obj
- .debug_line    0x00008cc6      0x738 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_watchdog/watchdog.c.obj
- .debug_line    0x000093fe      0x30e CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_ticks/ticks.c.obj
- .debug_line    0x0000970c      0xb08 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom.c.obj
- .debug_line    0x0000a214      0x3a6 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom_lock.c.obj
- .debug_line    0x0000a5ba      0x3e4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_boot_lock/boot_lock.c.obj
- .debug_line    0x0000a99e      0x35a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_xosc/xosc.c.obj
- .debug_line    0x0000acf8      0x279 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime/runtime.c.obj
- .debug_line    0x0000af71      0x687 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init.c.obj
- .debug_line    0x0000b5f8      0x568 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init_clocks.c.obj
- .debug_line    0x0000bb60      0x28f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_double/double_aeabi_dcp.S.obj
- .debug_line    0x0000bdef      0x1f5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_standard_binary_info/standard_binary_info.c.obj
- .debug_line    0x0000bfe4     0x12ba CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_printf/printf.c.obj
- .debug_line    0x0000d29e       0x9e CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_crt0/crt0.S.obj
- .debug_line    0x0000d33c      0x85a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_clib_interface/newlib_interface.c.obj
- .debug_line    0x0000db96      0xd5f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio/stdio.c.obj
- .debug_line    0x0000e8f5      0x524 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/reset_interface.c.obj
- .debug_line    0x0000ee19      0xfad CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb.c.obj
- .debug_line    0x0000fdc6      0x3a5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb_descriptors.c.obj
- .debug_line    0x0001016b      0x3e6 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_unique_id/unique_id.c.obj
- .debug_line    0x00010551     0x1357 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/dcd_rp2040.c.obj
- .debug_line    0x000118a8      0xc17 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/rp2040_usb.c.obj
- .debug_line    0x000124bf     0x25e7 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd.c.obj
- .debug_line    0x00014aa6      0x6db CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd_control.c.obj
- .debug_line    0x00015181      0xfe7 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/cdc/cdc_device.c.obj
- .debug_line    0x00016168      0xac4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/vendor/vendor_device.c.obj
- .debug_line    0x00016c2c     0x1465 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/tusb.c.obj
- .debug_line    0x00018091     0x1358 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/common/tusb_fifo.c.obj
- .debug_line    0x000193e9      0xcc9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_spi/spi.c.obj
- .debug_line    0x0001a0b2     0x1343 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pio/pio.c.obj
- .debug_line    0x0001b3f5     0x13af CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/tft.c.obj
- .debug_line    0x0001c7a4      0x134 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
- .debug_line    0x0001c8d8      0x249 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
- .debug_line    0x0001cb21      0x660 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
-
-.debug_str      0x00000000     0xa736
- .debug_str     0x00000000     0xa736 CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj
-                                0xe13 (size before relaxing)
- .debug_str     0x0000a736      0xd5d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_gpio/gpio.c.obj
- .debug_str     0x0000a736      0x228 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_platform_panic/panic.c.obj
- .debug_str     0x0000a736      0x3c0 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/hardware_claim/claim.c.obj
- .debug_str     0x0000a736      0x35d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync/sync.c.obj
- .debug_str     0x0000a736      0xc1d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_sync_spin_lock/sync_spin_lock.c.obj
- .debug_str     0x0000a736      0xc6a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_irq/irq.c.obj
- .debug_str     0x0000a736      0x254 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/lock_core.c.obj
- .debug_str     0x0000a736      0x936 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/mutex.c.obj
- .debug_str     0x0000a736      0x328 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_sync/critical_section.c.obj
- .debug_str     0x0000a736     0x1359 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/common/pico_time/time.c.obj
- .debug_str     0x0000a736      0xbeb CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_timer/timer.c.obj
- .debug_str     0x0000a736      0xbe5 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_clocks/clocks.c.obj
- .debug_str     0x0000a736      0x4e9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pll/pll.c.obj
- .debug_str     0x0000a736      0x777 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_watchdog/watchdog.c.obj
- .debug_str     0x0000a736      0x308 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_ticks/ticks.c.obj
- .debug_str     0x0000a736      0x9ad CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom.c.obj
- .debug_str     0x0000a736      0x2f0 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_bootrom/bootrom_lock.c.obj
- .debug_str     0x0000a736      0x2dc CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_boot_lock/boot_lock.c.obj
- .debug_str     0x0000a736      0x273 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_xosc/xosc.c.obj
- .debug_str     0x0000a736      0x2c9 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime/runtime.c.obj
- .debug_str     0x0000a736     0x124d CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init.c.obj
- .debug_str     0x0000a736      0x515 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_runtime_init/runtime_init_clocks.c.obj
- .debug_str     0x0000a736       0xb2 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_double/double_aeabi_dcp.S.obj
- .debug_str     0x0000a736      0x472 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_standard_binary_info/standard_binary_info.c.obj
- .debug_str     0x0000a736      0x48a CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_printf/printf.c.obj
- .debug_str     0x0000a736       0xa4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_crt0/crt0.S.obj
- .debug_str     0x0000a736      0x8e6 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_clib_interface/newlib_interface.c.obj
- .debug_str     0x0000a736      0xc94 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio/stdio.c.obj
- .debug_str     0x0000a736      0xf8f CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/reset_interface.c.obj
- .debug_str     0x0000a736     0x10a4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb.c.obj
- .debug_str     0x0000a736     0x1131 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_stdio_usb/stdio_usb_descriptors.c.obj
- .debug_str     0x0000a736      0x2dc CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/pico_unique_id/unique_id.c.obj
- .debug_str     0x0000a736     0x13f4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/dcd_rp2040.c.obj
- .debug_str     0x0000a736      0xc18 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/portable/raspberrypi/rp2040/rp2040_usb.c.obj
- .debug_str     0x0000a736     0x1ca7 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd.c.obj
- .debug_str     0x0000a736      0x835 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/device/usbd_control.c.obj
- .debug_str     0x0000a736     0x18b4 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/cdc/cdc_device.c.obj
- .debug_str     0x0000a736      0xfa2 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/class/vendor/vendor_device.c.obj
- .debug_str     0x0000a736     0x1027 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/tusb.c.obj
- .debug_str     0x0000a736      0x657 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/lib/tinyusb/src/common/tusb_fifo.c.obj
- .debug_str     0x0000a736      0x7be CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_spi/spi.c.obj
- .debug_str     0x0000a736     0x1208 CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_pio/pio.c.obj
- .debug_str     0x0000a736     0x1556 CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/tft.c.obj
- .debug_str     0x0000a736      0x1ef CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/font.c.obj
- .debug_str     0x0000a736      0x25a CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj
- .debug_str     0x0000a736      0x6cb CMakeFiles/ControlBoard_Code.dir/C_/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/hardware_dma/dma.c.obj
->>>>>>> Stashed changes
 
 .debug_frame    0x00000000     0x3d54
  .debug_frame   0x00000000      0x120 CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj

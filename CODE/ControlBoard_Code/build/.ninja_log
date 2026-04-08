@@ -112,3 +112,13 @@
 1777	2114	7972109095988933	CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/st7735.c.obj	b44104f1024a231c
 1746	2208	7972109095669145	CMakeFiles/ControlBoard_Code.dir/lib/pico-tft/tft.c.obj	e379618e233925e0
 42	82	7947021012323346	freq_counter.pio.h	869599df4290f7d5
+27	298	7973673289778780	CMakeFiles/ControlBoard_Code.dir/ControlBoard_Code.c.obj	3cd932d459b8d7a7
+298	1236	7973673301831777	ControlBoard_Code.elf	a24fb97d4c92090b
+298	1236	7973673301831777	ControlBoard_Code.dis	a24fb97d4c92090b
+298	1236	7973673301831777	ControlBoard_Code.hex	a24fb97d4c92090b
+298	1236	7973673301831777	ControlBoard_Code.bin	a24fb97d4c92090b
+298	1236	7973673301831777	ControlBoard_Code.uf2	a24fb97d4c92090b
+298	1236	7973673301831777	C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/ControlBoard_Code.dis	a24fb97d4c92090b
+298	1236	7973673301831777	C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/ControlBoard_Code.hex	a24fb97d4c92090b
+298	1236	7973673301831777	C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/ControlBoard_Code.bin	a24fb97d4c92090b
+298	1236	7973673301831777	C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/ControlBoard_Code.uf2	a24fb97d4c92090b
