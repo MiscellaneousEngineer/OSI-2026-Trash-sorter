@@ -136,6 +136,7 @@ int main()
         snprintf(buffer, sizeof(buffer), "%d", F);
         tft_fill(0);
         tft_draw_string(20, 1, 100, buffer);
+<<<<<<< Updated upstream
         graphfreq(0, 40, 100, F);
         char str[32];
         snprintf(buffer, sizeof(buffer), "%d", Smartdelay + 10000 - to_ms_since_boot(get_absolute_time()));
@@ -164,5 +165,8 @@ int main()
             }
             Smartdelay = to_ms_since_boot(get_absolute_time());
         }
+=======
+
+>>>>>>> Stashed changes
     }
 }

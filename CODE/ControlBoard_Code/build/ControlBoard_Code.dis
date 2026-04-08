@@ -37,6 +37,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
  16 .comment      00000045  00000000  00000000  0000c35c  2**0
                   CONTENTS, READONLY
+<<<<<<< Updated upstream
  17 .debug_info   0003731c  00000000  00000000  0000c3a1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  18 .debug_abbrev 000099b7  00000000  00000000  000436bd  2**0
@@ -54,6 +55,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
  24 .debug_frame  00003d54  00000000  00000000  0008cb40  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  25 .debug_line_str 000002ab  00000000  00000000  00090894  2**0
+=======
+ 17 .debug_info   00036144  00000000  00000000  0000bfd9  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 18 .debug_abbrev 000097f5  00000000  00000000  0004211d  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 19 .debug_loclists 00013dfe  00000000  00000000  0004b912  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 20 .debug_aranges 00001728  00000000  00000000  0005f710  2**3
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 21 .debug_rnglists 00001bcd  00000000  00000000  00060e38  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 22 .debug_line   0001d181  00000000  00000000  00062a05  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 23 .debug_str    0000a736  00000000  00000000  0007fb86  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 24 .debug_frame  00003cb8  00000000  00000000  0008a2bc  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 25 .debug_line_str 000002ab  00000000  00000000  0008df74  2**0
+>>>>>>> Stashed changes
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/ControlBoard_Code.elf:     file format elf32-littlearm
