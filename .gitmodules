@@ -1,0 +1,3 @@
+[submodule "CODE/ControlBoard_Code/extern/pico-st7735"]
+	path = CODE/ControlBoard_Code/extern/pico-st7735
+	url = https://github.com/bablokb/pico-st7735
