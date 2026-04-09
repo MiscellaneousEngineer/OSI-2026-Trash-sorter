@@ -4,7 +4,7 @@
 
 // based on PICO_CONFIG_HEADER_FILES:
 
-#include "C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/include/boards/myboard.h"
-#include "C:/Users/budon/.pico-sdk/sdk/2.2.0/src/rp2_common/cmsis/include/cmsis/rename_exceptions.h"
+#include "C:/Users/Nicholas/.pico-sdk/sdk/2.2.0/src/boards/include/boards/pico2.h"
+#include "C:/Users/Nicholas/.pico-sdk/sdk/2.2.0/src/rp2_common/cmsis/include/cmsis/rename_exceptions.h"
 
 // based on PICO_RP2350_ARM_S_CONFIG_HEADER_FILES:

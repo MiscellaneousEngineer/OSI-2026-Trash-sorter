@@ -1,4 +1,4 @@
-// Padded and checksummed version of: C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/boot_stage2/bs2_default.bin
+// Padded and checksummed version of: C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/boot_stage2/bs2_default.bin
 
 .cpu cortex-m0plus
 .thumb

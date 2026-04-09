@@ -6,7 +6,9 @@
 #include "hardware/pwm.h"
 
 #include "freq_counter.pio.h"
-#include "tft.h"
+#include "ST7735_TFT.h"
+#include "hw.h"
+
 
 #define FRQPIN 15
 #define WINDOW_MS 10
@@ -62,12 +64,23 @@ void graphfreq(uint16_t x, uint16_t y, uint16_t color, uint32_t freq)
         if (rising || falling)
         {
             for (uint16_t v = 0; v <= 20; v++)
-                tft_draw_pixel(x + index, y - v, color);
+                drawPixel(x + index, y - v, color);
+                
         }
 
         uint16_t draw_y = plot[index] ? y : y - 20;
-        tft_draw_pixel(x + index, draw_y, color);
+        drawPixel(x + index, draw_y, color);
     }
+}
+
+void init_hw()
+{
+    stdio_init_all();
+    spi_init(SPI_PORT, 10000000);
+    gpio_set_function(SPI_RX, GPIO_FUNC_SPI);
+    gpio_set_function(SPI_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(SPI_TX, GPIO_FUNC_SPI);
+    tft_spi_init();
 }
 
 void Drive_stepper(uint16_t spdpin, uint16_t dirpin, uint16_t spdrpm, uint16_t dir){
@@ -102,8 +115,9 @@ int main()
     uint sm = pio_claim_unused_sm(pio, true);
     freq_counter_program_init(pio, sm, offset, FRQPIN);
 
-    tft_init();
-    tft_fill(0);
+    init_hw();
+    TFT_GreenTab_Initialize();
+    fillScreen(ST7735_BLACK);
 
     for (uint32_t i = 0; i < 12; i++)
     {
@@ -129,14 +143,13 @@ int main()
         T = T1 - T2;
         F = T / 0.01;
         // printf("Frequency : %u\n", F);
-
-        tft_swap_sync();
+        fillScreen(ST7735_BLACK);
 
         char buffer[16];
         snprintf(buffer, sizeof(buffer), "%d", F);
-        tft_fill(0);
-        tft_draw_string(20, 1, 100, buffer);
-        graphfreq(0, 40, 100, F);
+
+        drawText(20, 1, buffer, ST7735_WHITE,ST7735_BLACK, 1);
+        graphfreq(0, 40, ST7735_WHITE, F);
         char str[32];
         snprintf(buffer, sizeof(buffer), "%d", Smartdelay + 10000 - to_ms_since_boot(get_absolute_time()));
         if (Actdir)
@@ -147,7 +160,7 @@ int main()
         { 
             snprintf(str, sizeof(str), "%s%s", "In ", buffer);
         }
-        tft_draw_string(0, 50, 100, str);
+        drawText(0, 50, str, ST7735_WHITE,ST7735_BLACK, 1);
 
         // Swap actuator directions every 10 seconds (nonblocking)
         if (Smartdelay + 10000 < to_ms_since_boot(get_absolute_time()))

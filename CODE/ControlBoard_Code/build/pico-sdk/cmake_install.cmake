@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/budon/.pico-sdk/sdk/2.2.0
+# Install script for directory: C:/Users/Nicholas/.pico-sdk/sdk/2.2.0
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,27 +34,27 @@ endif()
 
 # Set path to fallback-tool for dependency-resolution.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "C:/Users/budon/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-objdump.exe")
+  set(CMAKE_OBJDUMP "C:/Users/Nicholas/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-objdump.exe")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/tools/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/tools/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/docs/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/docs/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/budon/Documents/GitHub/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/install_local_manifest.txt"
+  file(WRITE "C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
