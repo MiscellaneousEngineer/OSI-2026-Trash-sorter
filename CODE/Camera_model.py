@@ -17,11 +17,10 @@ CAMERAS = {
 MAGIC = b'FRAME'
 
 frames = {'CAM1': None, 'CAM2': None}
-lock = threading.Lock()
+lock = threading.Lock() #we need to run the cameras on seperate cores so they dont interfere wiht eachother (according to reddit) 
 
-# Load YOLOv5 model once
 device = select_device('')
-model = attempt_load('/home/nvidia/yolov5/yolov5s.pt', map_location=device)  # swap with your waste model when ready
+model = attempt_load('/home/nvidia/yolov5/yolov5s.pt', map_location=device)  # swap with your waste model when ready; Make sure directory is correct (shat itself)
 model.eval()
 names = model.module.names if hasattr(model, 'module') else model.names
 
@@ -35,7 +34,7 @@ def read_exact(ser, n):
 
 def run_inference(frame):
     img = cv2.resize(frame, (640, 640))
-    img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, HWC to CHW
+    img = img[:, :, ::-1].transpose(2, 0, 1) 
     img = np.ascontiguousarray(img)
     img = torch.from_numpy(img).to(device).float() / 255.0
     img = img.unsqueeze(0)
@@ -84,9 +83,9 @@ def camera_thread(callsign, port):
                         print(f"[{callsign}] Failed to decode, skipping...")
                         continue
 
-                    frame = cv2.flip(frame, 1)
+                    frame = cv2.flip(frame, 1) #0 flip up and down, 1 flip left right, -1 both
 
-                    # --- ADD COORDINATES READING HERE (2 bytes X + 2 bytes Y after callsign) ---
+                    # ADD COORDINATES READING HERE (2 bytes X + 2 bytes Y after callsign)
 
                     frame = run_inference(frame)  # run YOLOv5 on the frame
 
