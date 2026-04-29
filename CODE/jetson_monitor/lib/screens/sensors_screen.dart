@@ -61,4 +61,104 @@ class _SensorsScreenState extends State<SensorsScreen> {
           if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(
-                  color: Colors.greenAccent),
+                color: Colors.greenAccent,
+              ),
+            );
+          }
+
+          final data = SensorData.fromJson(snapshot.data!);
+          _tempHistory.add(
+              FlSpot(_tick++.toDouble(), data.temperature));
+          if (_tempHistory.length > 30) _tempHistory.removeAt(0);
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    statCard(
+                      'CPU Temp',
+                      '${data.temperature.toStringAsFixed(1)}°C',
+                      Colors.orangeAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    statCard(
+                      'GPU Usage',
+                      '${data.gpuUsage.toStringAsFixed(1)}%',
+                      Colors.blueAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    statCard(
+                      'CPU Usage',
+                      '${data.cpuUsage.toStringAsFixed(1)}%',
+                      Colors.purpleAccent,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'CPU Temperature History',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  child: LineChart(
+                    LineChartData(
+                      gridData: const FlGridData(show: false),
+                      borderData: FlBorderData(show: false),
+                      titlesData: const FlTitlesData(show: false),
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: _tempHistory.isEmpty
+                              ? [const FlSpot(0, 0)]
+                              : _tempHistory,
+                          isCurved: true,
+                          color: Colors.orangeAccent,
+                          dotData: const FlDotData(show: false),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: Colors.orangeAccent.withAlpha(25),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'IMU Data',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    statCard(
+                      'Accel X',
+                      data.imu['ax']?.toStringAsFixed(2) ?? '0.00',
+                      Colors.greenAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    statCard(
+                      'Accel Y',
+                      data.imu['ay']?.toStringAsFixed(2) ?? '0.00',
+                      Colors.greenAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    statCard(
+                      'Accel Z',
+                      data.imu['az']?.toStringAsFixed(2) ?? '0.00',
+                      Colors.greenAccent,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
