@@ -8,6 +8,8 @@
 #include "freq_counter.pio.h"
 #include "ST7735_TFT.h"
 #include "hw.h"
+//#include "UI.h"
+#include "Motorcontrol.h"
 
 
 #define FRQPIN 15
@@ -23,10 +25,13 @@ uint AcPins[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 uint32_t maskADir = (1u << 0) | (1u << 3) | (1u << 4) | (1u << 7) | (1u << 8) | (1u << 11);
 uint32_t maskASpeed = (1u << 1) | (1u << 2) | (1u << 5) | (1u << 6) | (1u << 9) | (1u << 10); // Actuator GPIO speed mask
 bool Actdir = 0;
-uint StpPins[2] = {12, 13};
+
+int STEP = 12;
+int DIR = 13;
+
 
 void graphfreq(uint16_t x, uint16_t y, uint16_t color, uint32_t freq)
-{
+{ 
     const uint16_t DISPLAY_WIDTH = 128;
     const uint32_t MIN_FREQ = 4100000;
     const uint32_t MAX_FREQ = 4400000;
@@ -83,30 +88,14 @@ void init_hw()
     tft_spi_init();
 }
 
-void Drive_stepper(uint16_t spdpin, uint16_t dirpin, uint16_t spdrpm, uint16_t dir){
-    //Nema 17 - 200 steps for a full revolution
-    //1 rps = 200Hz // 1rpm = 12khz
-    //maxspeed 2k rpm -> 
-    gpio_put(dirpin,dir);
 
-    gpio_set_function(spdpin, GPIO_FUNC_PWM);
-    uint slice = pwm_gpio_to_slice_num(spdpin);
-
-    // 1 kHz PWM @ 150 MHz sysclk
-    pwm_set_clkdiv(slice, 100.0f);
-    pwm_set_wrap(slice, 14999);
-
-    // 50% duty cycle
-    pwm_set_gpio_level(spdpin, 7500);
-
-    pwm_set_enabled(slice, true);
-
-
+void core1_entry() {
 
 }
 
 int main()
 {
+    
 
     stdio_init_all();
 
@@ -124,15 +113,11 @@ int main()
         gpio_init(AcPins[i]);
         gpio_set_dir(AcPins[i], 1);
     }
-    for (uint32_t i = 0; i < 2; i++)
-    {
-        gpio_init(StpPins[i]);
-        gpio_set_dir(StpPins[i], 1);
-    }
-    Drive_stepper(StpPins[0],StpPins[1],1,1);
 
-    gpio_set_mask64(maskASpeed); // Full duty cycle PWM pins on TB6612
+    setup_stepper(STEP, DIR);
+
     Smartdelay = to_ms_since_boot(get_absolute_time());
+    sleep_ms(200);
 
     while (true)
     {
@@ -143,14 +128,14 @@ int main()
         T = T1 - T2;
         F = T / 0.01;
         // printf("Frequency : %u\n", F);
-        fillScreen(ST7735_BLACK);
-
+       // fillScreen(ST7735_BLACK);
+        fillRect(0,10,160,35,ST7735_BLACK);
         char buffer[16];
-        snprintf(buffer, sizeof(buffer), "%d", F);
-
-        drawText(20, 1, buffer, ST7735_WHITE,ST7735_BLACK, 1);
+        snprintf(buffer, sizeof(buffer), "%d", F); 
+        drawText(20, 5, buffer, ST7735_WHITE,ST7735_BLACK, 1);
         graphfreq(0, 40, ST7735_WHITE, F);
         char str[32];
+
         snprintf(buffer, sizeof(buffer), "%d", Smartdelay + 10000 - to_ms_since_boot(get_absolute_time()));
         if (Actdir)
         {
@@ -161,6 +146,9 @@ int main()
             snprintf(str, sizeof(str), "%s%s", "In ", buffer);
         }
         drawText(0, 50, str, ST7735_WHITE,ST7735_BLACK, 1);
+
+        drive_stepper(100,1,STEP,DIR,0);
+
 
         // Swap actuator directions every 10 seconds (nonblocking)
         if (Smartdelay + 10000 < to_ms_since_boot(get_absolute_time()))
