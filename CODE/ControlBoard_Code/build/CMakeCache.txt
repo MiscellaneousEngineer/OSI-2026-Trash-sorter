@@ -333,7 +333,7 @@ PICO_STDIO_UART:BOOL=ON
 PICO_STDIO_USB:BOOL=OFF
 
 //No help, variable specified on the command line.
-Python3_EXECUTABLE:STRING=c:/Program Files (x86)/Microsoft Visual Studio/Shared/Python39_64/python.exe
+Python3_EXECUTABLE:UNINITIALIZED=c:/Program Files (x86)/Microsoft Visual Studio/Shared/Python39_64/python.exe
 
 //spi port-name
 SPI_PORT:STRING=spi0
