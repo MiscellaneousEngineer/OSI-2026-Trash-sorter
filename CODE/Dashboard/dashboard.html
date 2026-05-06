@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bin Monitor Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #0b0e14;
+    --panel:      #111620;
+    --border:     #1e2736;
+    --accent:     #00e5ff;
+    --accent2:    #ff6b35;
+    --text:       #c8d6e8;
+    --dim:        #4a5568;
+    --green:      #00e676;
+    --amber:      #ffb300;
+    --red:        #ff1744;
+    --font-mono:  'Share Tech Mono', monospace;
+    --font-ui:    'Barlow Condensed', sans-serif;
+    --radius:     6px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-weight: 700; font-size: 20px; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .logo span { color: var(--text); font-weight: 300; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+
+  button {
+    font-family: var(--font-ui); font-weight: 500; letter-spacing: 1px;
+    text-transform: uppercase; border: 1px solid;
+    border-radius: var(--radius); padding: 6px 16px;
+    cursor: pointer; font-size: 13px; transition: all 0.15s;
+  }
+  .btn-stop-all  { background: transparent; border-color: var(--red);   color: var(--red); }
+  .btn-stop-all:hover  { background: var(--red);   color: #fff; }
+  .btn-start-all { background: transparent; border-color: var(--green); color: var(--green); }
+  .btn-start-all:hover { background: var(--green); color: #000; }
+  .btn-sm { font-size: 11px; padding: 4px 10px; }
+  .btn-stop  { border-color: var(--red);   color: var(--red);   background: transparent; }
+  .btn-stop:hover  { background: var(--red);   color: #fff; }
+  .btn-start { border-color: var(--green); color: var(--green); background: transparent; }
+  .btn-start:hover { background: var(--green); color: #000; }
+
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; padding: 20px 28px;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .section-title {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 12px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+  }
+
+  .cameras-section { grid-column: 1 / -1; }
+  .cameras-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .camera-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .camera-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: #0d1119;
+    border-bottom: 1px solid var(--border);
+  }
+  .camera-title {
+    font-weight: 700; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .camera-controls { display: flex; gap: 6px; }
+  .status-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; background: var(--dim);
+    margin-right: 6px; transition: background 0.3s;
+  }
+  .status-dot.live {
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .camera-feed {
+    background: #060810; width: 100%; aspect-ratio: 4/3;
+    position: relative; overflow: hidden;
+  }
+  /* Live MJPEG image fills the box */
+  .camera-feed img.video-stream {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: contain;
+    background: #060810;
+    display: block;
+  }
+  /* Placeholder shown only when no frame yet */
+  .feed-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; color: var(--dim);
+    font-family: var(--font-mono); font-size: 12px;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.3s;
+  }
+  .feed-placeholder svg { opacity: 0.3; }
+  .feed-placeholder.hidden { opacity: 0; }
+
+  /* Scanline overlay */
+  .camera-feed::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .camera-log {
+    height: 90px; overflow-y: auto;
+    padding: 8px 12px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--accent); background: #070a0f;
+    border-top: 1px solid var(--border);
+    line-height: 1.6;
+  }
+  .camera-log::-webkit-scrollbar { width: 4px; }
+  .camera-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-line { opacity: 0.8; }
+  .log-line:last-child { opacity: 1; color: var(--green); }
+
+  .camera-label {
+    padding: 6px 14px;
+    font-size: 12px; font-family: var(--font-mono);
+    background: #070a0f; border-top: 1px solid var(--border);
+    color: var(--dim);
+  }
+  .camera-label span { color: var(--amber); }
+
+  .bins-section { grid-column: 1 / -1; }
+  .bins-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+
+  .bin-card {
+    background: #0d1119; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; transition: border-color 0.3s;
+  }
+  .bin-card.full    { border-color: var(--red); }
+  .bin-card.warning { border-color: var(--amber); }
+  .bin-card.invalid { border-color: var(--dim); opacity: 0.6; }
+
+  .bin-id {
+    font-weight: 700; font-size: 18px;
+    letter-spacing: 2px; color: var(--text);
+  }
+
+  .gauge-wrap {
+    width: 44px; height: 120px;
+    background: #0b0e14; border: 1px solid var(--border);
+    border-radius: 4px; position: relative; overflow: hidden;
+  }
+  .gauge-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    transition: height 0.6s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+    border-radius: 0 0 3px 3px;
+  }
+  .gauge-wrap::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      180deg, transparent, transparent calc(25% - 1px),
+      rgba(255,255,255,0.06) calc(25% - 1px), rgba(255,255,255,0.06) 25%);
+    pointer-events: none; z-index: 1;
+  }
+
+  .bin-pct {
+    font-family: var(--font-mono); font-size: 22px;
+    font-weight: 700; transition: color 0.4s;
+  }
+  .bin-dist { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+  .bin-status-badge {
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700;
+    padding: 3px 8px; border-radius: 3px;
+    background: #1a2030; color: var(--dim);
+    transition: all 0.3s;
+  }
+  .bin-status-badge.full    { background: rgba(255,23,68,0.15); color: var(--red); }
+  .bin-status-badge.warning { background: rgba(255,179,0,0.12); color: var(--amber); }
+  .bin-status-badge.ok      { background: rgba(0,230,118,0.10); color: var(--green); }
+
+  footer {
+    margin-top: 8px; padding: 10px 28px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 20px;
+    font-size: 12px; font-family: var(--font-mono);
+    color: var(--dim);
+  }
+  .conn-indicator     { color: var(--green); }
+  .conn-indicator.err { color: var(--red); }
+  .poll-ts            { margin-left: auto; }
+
+  @media (max-width: 900px) {
+    .main-grid    { grid-template-columns: 1fr; }
+    .cameras-row  { grid-template-columns: 1fr; }
+    .bins-row     { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .bins-row { grid-template-columns: repeat(2, 1fr); }
+    header    { flex-wrap: wrap; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">BIN<span>MONITOR</span></div>
+  <div class="header-right">
+    <button class="btn-start-all" onclick="controlAll('start_all')">&#9654; Start All</button>
+    <button class="btn-stop-all"  onclick="controlAll('stop_all')">&#9632; Stop All</button>
+  </div>
+</header>
+
+<div class="main-grid">
+
+  <section class="cameras-section panel">
+    <div class="section-title">Camera Feeds</div>
+    <div class="cameras-row" id="cameras-row"></div>
+  </section>
+
+  <section class="bins-section panel">
+    <div class="section-title">Bin Fill Levels &nbsp; full at &le; 75 mm</div>
+    <div class="bins-row" id="bins-row"></div>
+  </section>
+
+</div>
+
+<footer>
+  <span id="conn-status" class="conn-indicator">&#9679; CONNECTED</span>
+  <span id="thread-status"></span>
+  <span class="poll-ts" id="poll-ts"></span>
+</footer>
+
+<script>
+const NUM_CAMERAS = 2;
+const camerasRow  = document.getElementById('cameras-row');
+const binsRow     = document.getElementById('bins-row');
+
+// ── Build camera cards ────────────────────────────────────────────────────
+for (let i = 0; i < NUM_CAMERAS; i++) {
+  camerasRow.innerHTML += `
+  <div class="camera-card" id="cam-card-${i}">
+    <div class="camera-header">
+      <div class="camera-title">
+        <span class="status-dot" id="cam-dot-${i}"></span>CAM ${i}
+      </div>
+      <div class="camera-controls">
+        <button class="btn-sm btn-start" onclick="control('start','camera_${i}')">&#9654;</button>
+        <button class="btn-sm btn-stop"  onclick="control('stop','camera_${i}')">&#9632;</button>
+      </div>
+    </div>
+    <div class="camera-feed">
+      <img class="video-stream" id="cam-img-${i}" alt=""
+           onload="onFrameLoaded(${i})"
+           onerror="onFrameError(${i})">
+      <div class="feed-placeholder" id="feed-placeholder-${i}">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.2">
+          <rect x="2" y="7" width="20" height="15" rx="2"/>
+          <path d="M16 2l4 5H4l4-5z"/>
+          <circle cx="12" cy="14" r="3"/>
+        </svg>
+        <span id="placeholder-text-${i}">No signal</span>
+      </div>
+    </div>
+    <div class="camera-label">Last detected: <span id="cam-label-${i}">-</span></div>
+    <div class="camera-log" id="cam-log-${i}"></div>
+  </div>`;
+}
+
+// Attach video src AFTER innerHTML so the browser doesn't load it twice
+for (let i = 0; i < NUM_CAMERAS; i++) {
+  document.getElementById(`cam-img-${i}`).src = `/video/${i}`;
+}
+
+// ── Build bin cards ───────────────────────────────────────────────────────
+for (let i = 1; i <= 5; i++) {
+  binsRow.innerHTML += `
+  <div class="bin-card" id="bin-card-S${i}">
+    <div class="bin-id">S${i}</div>
+    <div class="gauge-wrap">
+      <div class="gauge-fill" id="gauge-S${i}" style="height:0%;background:var(--green);"></div>
+    </div>
+    <div class="bin-pct" id="pct-S${i}" style="color:var(--green)">0%</div>
+    <div class="bin-dist" id="dist-S${i}">--- mm</div>
+    <div class="bin-status-badge" id="badge-S${i}">EMPTY</div>
+  </div>`;
+}
+
+// ── Frame loaded handlers ─────────────────────────────────────────────────
+function onFrameLoaded(i) {
+  document.getElementById(`feed-placeholder-${i}`).classList.add('hidden');
+}
+function onFrameError(i) {
+  document.getElementById(`feed-placeholder-${i}`).classList.remove('hidden');
+  document.getElementById(`placeholder-text-${i}`).textContent = 'Stream error';
+}
+
+// ── Bin colour helpers ────────────────────────────────────────────────────
+function binColor(pct) {
+  if (pct >= 100) return 'var(--red)';
+  if (pct >= 75)  return 'var(--amber)';
+  return 'var(--green)';
+}
+
+function updateBin(id, data) {
+  const { distance_mm, fullness_pct, is_full } = data;
+  const card  = document.getElementById(`bin-card-${id}`);
+  const badge = document.getElementById(`badge-${id}`);
+  const gauge = document.getElementById(`gauge-${id}`);
+  const pctEl = document.getElementById(`pct-${id}`);
+  const dist  = document.getElementById(`dist-${id}`);
+
+  // Invalid / no reading
+  if (distance_mm === null || distance_mm === undefined) {
+    card.classList.remove('full', 'warning');
+    card.classList.add('invalid');
+    badge.classList.remove('full', 'warning', 'ok');
+    badge.textContent = 'NO DATA';
+    gauge.style.height = '0%';
+    pctEl.textContent  = '---';
+    pctEl.style.color  = 'var(--dim)';
+    dist.textContent   = '--- mm';
+    return;
+  }
+
+  card.classList.remove('invalid');
+  const pct = fullness_pct;
+  const col = binColor(pct);
+
+  gauge.style.height     = `${pct}%`;
+  gauge.style.background = col;
+  pctEl.textContent      = `${pct}%`;
+  pctEl.style.color      = col;
+  dist.textContent       = `${distance_mm} mm`;
+
+  card.classList.remove('full', 'warning');
+  badge.classList.remove('full', 'warning', 'ok');
+
+  if (is_full || pct >= 100) {
+    card.classList.add('full');  badge.classList.add('full');    badge.textContent = 'FULL';
+  } else if (pct >= 75) {
+    card.classList.add('warning'); badge.classList.add('warning'); badge.textContent = 'WARN';
+  } else {
+    badge.classList.add('ok'); badge.textContent = pct < 5 ? 'EMPTY' : 'OK';
+  }
+}
+
+function updateCamera(id, data) {
+  const dot   = document.getElementById(`cam-dot-${id}`);
+  const label = document.getElementById(`cam-label-${id}`);
+  const log   = document.getElementById(`cam-log-${id}`);
+  const ph    = document.getElementById(`feed-placeholder-${id}`);
+  const phT   = document.getElementById(`placeholder-text-${id}`);
+
+  if (data.running) dot.classList.add('live');
+  else              dot.classList.remove('live');
+
+  // Placeholder text reflects state
+  if (!data.running)        phT.textContent = 'Camera stopped';
+  else if (!data.has_frame) phT.textContent = 'Waiting for frame...';
+
+  // Hide placeholder once frames are arriving
+  if (data.has_frame) ph.classList.add('hidden');
+  else                ph.classList.remove('hidden');
+
+  label.textContent = data.last_label || '-';
+
+  if (data.log && data.log.length) {
+    const lastText = log.lastElementChild ? log.lastElementChild.textContent : '';
+    const lastLine = data.log[data.log.length - 1];
+    if (lastText !== lastLine) {
+      log.innerHTML = data.log
+        .map(l => `<div class="log-line">${l}</div>`)
+        .join('');
+      log.scrollTop = log.scrollHeight;
+    }
+  }
+}
+
+// ── Poll /api/state every 500 ms ──────────────────────────────────────────
+async function poll() {
+  try {
+    const res  = await fetch('/api/state');
+    const data = await res.json();
+
+    for (const [id, cam] of Object.entries(data.cameras || {})) updateCamera(id, cam);
+    for (const [id, bin] of Object.entries(data.bins    || {})) updateBin(id, bin);
+
+    const ts = data.thread_status || {};
+    document.getElementById('thread-status').textContent =
+      Object.entries(ts).map(([k,v]) => `${k}: ${v ? '\u25B6' : '\u25A0'}`).join('  ');
+
+    const cs = document.getElementById('conn-status');
+    cs.textContent = '\u25CF CONNECTED';
+    cs.className   = 'conn-indicator';
+  } catch (e) {
+    const cs = document.getElementById('conn-status');
+    cs.textContent = '\u25CF DISCONNECTED';
+    cs.className   = 'conn-indicator err';
+  }
+  document.getElementById('poll-ts').textContent = new Date().toLocaleTimeString();
+}
+
+async function control(action, thread) {
+  await fetch('/api/control', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({action, thread})
+  });
+}
+async function controlAll(action) {
+  await fetch('/api/control', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({action})
+  });
+}
+
+setInterval(poll, 500);
+poll();
+</script>
+
+</body>
+</html>
