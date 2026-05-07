@@ -23,13 +23,13 @@ uint F = 0;
 uint Smartdelay;
 uint Smartdelay1;
 
+int STEP = 12;
+int DIR = 13;
+
 uint AcPins[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 uint32_t maskADir = (1u << 0) | (1u << 3) | (1u << 4) | (1u << 7) | (1u << 8) | (1u << 11);
 uint32_t maskASpeed = (1u << 1) | (1u << 2) | (1u << 5) | (1u << 6) | (1u << 9) | (1u << 10); // Actuator GPIO speed mask
 bool Actdir = 0;
-
-int STEP = 12;
-int DIR = 13;
 
 /* --- Pico-link (Jetson UART) configuration --------------------------- */
 #define PICO_LINK_UART      uart0
@@ -37,13 +37,6 @@ int DIR = 13;
 #define PICO_LINK_TX_PIN    16     /* GP16 = UART0 TX (unused, Jetson is read-only here) */
 #define PICO_LINK_RX_PIN    17     /* GP17 = UART0 RX */
 #define PICO_LINK_STALE_MS  1000   /* show "~" if no parsed line in this window */
-
-/* Loopback self-test: when 1, core0 transmits a synthetic detection out
- * GP16 every second. Wire GP16 to GP17 externally and the reader on
- * core1 will receive its own bytes back, parse them, and drive the
- * on-screen indicator. Set to 0 (or delete) before connecting the
- * Jetson, otherwise both senders will collide on the line. */
-#define LOOPBACK_TEST       1
 
 /* Latest received detection. Updated on core0 from FIFO. */
 static bin_id_t last_bin  = BIN_UNKNOWN;
@@ -55,13 +48,12 @@ static float    last_conf = 0.0f;
 static const char *bin_short(bin_id_t b)
 {
     switch (b) {
-        case BIN_PLASTIC:   return "PLAS";
-        case BIN_GLASS:     return "GLAS";
-        case BIN_PAPER:     return "PAPR";
-        case BIN_CARDBOARD: return "CARD";
-        case BIN_METAL:     return "META";
-        case BIN_OTHER:     return "OTHR";
-        default:            return "----";
+        case BIN_METAL:   return "META";
+        case BIN_GLASS:   return "GLAS";
+        case BIN_PLASTIC: return "PLAS";
+        case BIN_PAPER:   return "PAPR";
+        case BIN_OTHER:   return "OTHR";
+        default:          return "----";
     }
 }
 
@@ -75,12 +67,6 @@ void core1_entry(void)
     detection_t det;
     while (true) {
         if (pico_link_read_blocking(&det)) {
-            /* Heartbeats and BIN_OTHER both refresh last_rx_ms inside
-             * the reader (link-alive indicator stays green) but we
-             * don't push them to core0 - the sorter only acts on the
-             * five real materials (plastic/glass/paper/cardboard/metal). */
-            if (det.cam_id == HEARTBEAT_CAM_ID) continue;
-            if (!BIN_IS_SORTABLE(det.bin))      continue;
             pico_link_fifo_push(&det);
         }
         /* malformed line -> parser already resynced, just loop */
@@ -205,33 +191,6 @@ int main()
 
         drawText(0, 50, str, ST7735_WHITE, ST7735_BLACK, 1);
 
-#if LOOPBACK_TEST
-        /* --- Loopback test: send one synthetic detection per second --
-         * Cycles through all six bin numbers + one heartbeat so you can
-         * see the parser decode each. The heartbeat (cam_id=9) should
-         * NOT update the on-screen detection - only the link timestamp.
-         * Wire GP16 to GP17 externally for it to come back. */
-        {
-            static uint32_t t_test = 0;
-            static uint8_t  test_idx = 0;
-            static const char *test_lines[7] = {
-                "M,1,100,200,0.950,0\n",   /* plastic   */
-                "M,2,512,180,0.610,1\n",   /* glass     */
-                "M,3,98,401,0.730,0\n",    /* paper     */
-                "M,4,250,300,0.820,1\n",   /* cardboard */
-                "M,5,320,240,0.870,0\n",   /* metal     */
-                "M,6,50,50,0.400,1\n",     /* other     */
-                "M,6,800,800,0.000,9\n",   /* heartbeat */
-            };
-            uint32_t now_ms = to_ms_since_boot(get_absolute_time());
-            if (now_ms > t_test + 1000) {
-                uart_puts(PICO_LINK_UART, test_lines[test_idx]);
-                test_idx = (test_idx + 1) % 7;
-                t_test = now_ms;
-            }
-        }
-#endif
-
         /* --- Pico-link: drain whatever core1 has pushed --------------
          * Loop drains all queued detections so we don't fall behind if
          * several arrived during a slow iteration (e.g. drive_stepper).
@@ -245,8 +204,16 @@ int main()
         }
 
         /* --- RX status indicator -------------------------------------
+            _bin  = det.bin;
+            last_cx   = det.cx;
+            last_cy   = det.cy;
+            last_conf = det.conf;
+        }
+
+        /* ─── RX status indicator ─────────────────────────────────────
          * Shows "~" if no line has been parsed in the last
          * PICO_LINK_STALE_MS. Otherwise shows the short bin name. */
+
         {
             uint32_t last_ms = pico_link_last_rx_ms();
             uint32_t now_ms  = to_ms_since_boot(get_absolute_time());
@@ -282,12 +249,6 @@ int main()
                 Actdir = 1;
             }
             Smartdelay = to_ms_since_boot(get_absolute_time());
-        }
-
-        if (Smartdelay1 + 2000 < to_ms_since_boot(get_absolute_time()))
-        {
-            drive_stepper(1050, 0.5, STEP, DIR, 1);
-            Smartdelay1 = to_ms_since_boot(get_absolute_time());
         }
     }
 }

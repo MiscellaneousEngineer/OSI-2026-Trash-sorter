@@ -68,7 +68,7 @@ endif()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(ControlBoard_Code ControlBoard_Code.c )
+add_executable(ControlBoard_Code ControlBoard_Code.c pico_link.c )
 
 pico_set_program_name(ControlBoard_Code "ControlBoard_Code")
 pico_set_program_version(ControlBoard_Code "0.1")
@@ -96,6 +96,8 @@ target_link_libraries(ControlBoard_Code
         hardware_spi
         hardware_pio
         hardware_pwm
+        hardware_uart
+        pico_multicore
         st7735   
         )
 
