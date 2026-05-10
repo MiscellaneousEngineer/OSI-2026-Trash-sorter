@@ -1,0 +1,171 @@
+/* ==========================================================================
+ * OSI-2026 — Arduino Uno firmware
+ * ==========================================================================
+ *  Functions:
+ *    1. Reads 5 ultrasonic sensors on A0..A4 (single-wire HC-SR04 mode);
+ *       A5 left free for a 6th sensor or future use.
+ *    2. Streams  "d1,d2,d3,d4,d5\n"  at ~10 Hz to the Jetson (115200 8N1).
+ *    3. Listens for "RAMP\n" from the Jetson; on receipt, runs two SG90s
+ *       (pins 5 and 6) through one open → hold → close cycle. The two
+ *       servos are mirrored: servo B always = 180° − servo A.
+ *
+ *  Wiring:
+ *    Servo A  signal -> D5     (any digital pin works, Servo.h is sw-driven)
+ *    Servo B  signal -> D6
+ *    Servo V+ -> EXTERNAL 5 V supply, NOT the Uno's 5V rail
+ *               (two SG90s peak >1 A; the onboard regulator will brown out)
+ *    Servo GND, ext-supply GND, and Arduino GND ALL TIED TOGETHER
+ *    HC-SR04 (×5) signal pins on A0..A4 (used as digital), 5V + GND from Uno
+ *
+ *  Timer note:
+ *    Servo.h uses Timer1 on the Uno → disables analogWrite() on pins 9/10
+ *    only. Pins 5/6 PWM (Timer0) is untouched, and we use them as plain
+ *    digital servo outputs anyway, so no conflict.
+ * ========================================================================== */
+
+#include <Servo.h>
+
+// ---------------- Ultrasonic config ---------------------------------------
+const uint8_t  NUM_SENSORS              = 5;
+const uint8_t  SENSOR_PINS[NUM_SENSORS] = {A0, A1, A2, A3, A4};
+const uint16_t SAMPLE_INTERVAL_MS       = 100;     // ~10 Hz
+const unsigned long PING_TIMEOUT_US     = 30000UL; // ~5 m max range
+
+// ---------------- Ramp / servo config -------------------------------------
+const uint8_t  SERVO_A_PIN       = 5;
+const uint8_t  SERVO_B_PIN       = 6;
+
+// Servo A angles. Servo B is driven to (180 − A) so it mirrors.
+// If your ramp opens the wrong way, either swap CLOSED/OPEN here OR flip
+// the mirror line in rampWrite() to a fixed offset of your choosing.
+const uint8_t  RAMP_CLOSED_DEG   = 170;
+const uint8_t  RAMP_OPEN_DEG     = 90;
+
+const uint16_t RAMP_HOLD_MS      = 1500;  // time the ramp stays open
+
+// ---------------- Servo objects + state -----------------------------------
+Servo servoA, servoB;
+
+enum RampState : uint8_t { RAMP_IDLE, RAMP_OPEN };
+RampState     rampState   = RAMP_IDLE;
+unsigned long rampCloseAt = 0;
+
+inline void rampWrite(uint8_t angleA) {
+    servoA.write(angleA);
+    servoB.write(180 - angleA);          // mirrored partner
+}
+
+void rampTrigger() {
+    if (rampState != RAMP_IDLE) return;  // ignore re-triggers while open
+    rampWrite(RAMP_OPEN_DEG);
+    rampState   = RAMP_OPEN;
+    rampCloseAt = millis() + RAMP_HOLD_MS;
+    Serial.println(F("# ramp:open"));
+}
+
+void rampUpdate() {
+    if (rampState == RAMP_OPEN && (long)(millis() - rampCloseAt) >= 0) {
+        rampWrite(RAMP_CLOSED_DEG);
+        rampState = RAMP_IDLE;
+        Serial.println(F("# ramp:idle"));
+    }
+}
+
+// ---------------- Ultrasonic (single-wire HC-SR04) ------------------------
+long pingMM(uint8_t pin) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(pin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(pin, LOW);
+    pinMode(pin, INPUT);
+    unsigned long us = pulseIn(pin, HIGH, PING_TIMEOUT_US);
+    if (us == 0) return -1;                       // no echo / out of range
+    return (long)((us * 343L) / 2000L);           // µs → mm  (v_sound 343 m/s)
+}
+
+void emitDistances() {
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        long mm = pingMM(SENSOR_PINS[i]);
+        Serial.print(mm);
+        if (i < NUM_SENSORS - 1) Serial.print(',');
+    }
+    Serial.print('\n');
+}
+
+// ---------------- Serial command parser -----------------------------------
+char rxBuf[16];
+uint8_t rxLen = 0;
+
+void handleSerial() {
+    while (Serial.available()) {
+        char c = (char)Serial.read();
+        if (c == '\r') continue;
+        if (c == '\n') {
+            rxBuf[rxLen] = '\0';
+            if (rxLen > 0) processCommand(rxBuf);
+            rxLen = 0;
+        } else if (rxLen < sizeof(rxBuf) - 1) {
+            rxBuf[rxLen++] = c;
+        } else {
+            rxLen = 0;                   // overflow → drop
+        }
+    }
+}
+
+void processCommand(char *line) {
+    while (*line == ' ') line++;          // skip leading spaces
+
+    if (strcasecmp(line, "RAMP") == 0) {
+        rampTrigger();
+        return;
+    }
+    if (strncasecmp(line, "ANG", 3) == 0) {
+        int deg = atoi(line + 3);
+        if (deg < 0 || deg > 180) return;
+        rampWrite((uint8_t)deg);
+        Serial.print(F("# ang A=")); Serial.print(deg);
+        Serial.print(F(" B="));      Serial.println(180 - deg);
+        return;
+    }
+    char k = line[0];
+    if (k == 'A' || k == 'a' || k == 'B' || k == 'b') {
+        int deg = atoi(line + 1);
+        if (deg < 0 || deg > 180) return;
+        if (k == 'A' || k == 'a') { servoA.write(deg);
+            Serial.print(F("# A=")); Serial.println(deg); }
+        else                      { servoB.write(deg);
+            Serial.print(F("# B=")); Serial.println(deg); }
+    }
+}
+
+// ---------------- Main ----------------------------------------------------
+unsigned long nextSampleAt = 0;
+
+void setup() {
+    Serial.begin(115200);
+
+    servoA.attach(SERVO_A_PIN);
+    servoB.attach(SERVO_B_PIN);
+    rampWrite(RAMP_CLOSED_DEG);          // start closed
+
+    // Drive HC-SR04 pins low at boot so they're in a known state.
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        pinMode(SENSOR_PINS[i], OUTPUT);
+        digitalWrite(SENSOR_PINS[i], LOW);
+    }
+
+    Serial.println(F("# osi2026 uno ready"));
+}
+
+void loop() {
+    handleSerial();
+    rampUpdate();
+
+    unsigned long now = millis();
+    if ((long)(now - nextSampleAt) >= 0) {
+        nextSampleAt = now + SAMPLE_INTERVAL_MS;
+        emitDistances();
+    }
+}
