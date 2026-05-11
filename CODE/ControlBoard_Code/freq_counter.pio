@@ -5,7 +5,6 @@ wait 0 gpio 15
 wait 1 gpio 15
 jmp x-- edge
 edge:
-
 mov isr, x
 push noblock
 .wrap

@@ -1,9 +1,6 @@
 /*
- * pico_link.c - Jetson -> Pico 2 UART line reader (no checksum) plus
- *               hardware multicore FIFO for handing parsed records to
- *               core0.
- *
- * Designed for the reader to run alone on core1.  No printing.
+ * pico_link.c - Implementation of the Jetson <-> Pico 2 UART link.
+ *               Numeric material protocol, CRC-acknowledged.
  */
 
 #include "pico_link.h"
@@ -14,24 +11,27 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 
-/* Protocol max line is ~30 chars. 64 = comfortable safety margin. */
-#define LINE_BUF_SIZE  64
+/* Protocol max line is ~30 chars; 64 = comfortable safety margin. */
+#define LINE_BUF_SIZE 64
 
-/* -- Reader state (core1 only) --------------------------------------- */
+/* Module state. Single-instance, single-core (core1) by design. */
 static uart_inst_t *s_uart = NULL;
 static char         s_buf[LINE_BUF_SIZE];
 static size_t       s_len = 0;
 
-/* -- Cross-core liveness (core1 writes, core0 reads) ----------------- */
-/* Aligned 32-bit word: read/write is atomic on Cortex-M33. */
+/* Last successfully-parsed line, kept for CRC computation. */
+static char         s_last_line[LINE_BUF_SIZE];
+static size_t       s_last_line_len = 0;
+
+/* Boot-ms of the last successful parse. volatile + 32-bit aligned, so
+ * cross-core reads are atomic without a lock. */
 static volatile uint32_t s_last_rx_ms = 0;
 
 
-/* ========================================================================
- * Reader: init
- * ======================================================================== */
+/* ----- Init ------------------------------------------------------------- */
 void pico_link_init(uart_inst_t *uart, uint baud, uint tx_pin, uint rx_pin)
 {
     s_uart = uart;
@@ -46,10 +46,13 @@ void pico_link_init(uart_inst_t *uart, uint baud, uint tx_pin, uint rx_pin)
     uart_set_hw_flow(uart, false, false);
 }
 
+uint32_t pico_link_last_rx_ms(void)
+{
+    return s_last_rx_ms;
+}
 
-/* ========================================================================
- * Reader: helpers
- * ======================================================================== */
+
+/* ----- Helpers ---------------------------------------------------------- */
 
 /* Pull next comma-delimited token, NUL-terminating it in place.
  * Advances *p past the comma; sets *p = NULL after the last token. */
@@ -67,9 +70,7 @@ static char *next_field(char **p)
     return start;
 }
 
-/* Map a wire-protocol material number (1..6) to the bin_id_t enum.
- * Out-of-range values (0, negative, > 6) become BIN_UNKNOWN, which
- * the parser treats as a malformed line. */
+/* Wire material number -> enum. Out-of-range -> BIN_UNKNOWN. */
 static bin_id_t material_num_to_bin(long n)
 {
     if (n >= BIN_PLASTIC && n <= BIN_OTHER) {
@@ -78,19 +79,20 @@ static bin_id_t material_num_to_bin(long n)
     return BIN_UNKNOWN;
 }
 
-/* Parse one (NUL-terminated, no '\n') line into *out.
- * Returns true on success; *out untouched on failure. */
+/* Parse one '\0'-terminated line into *out. Returns true on a fully-
+ * valid record, false on any malformation. Mutates the input buffer
+ * (NUL-terminates fields in place). */
 static bool parse_line(char *line, detection_t *out)
 {
+    if (line[0] == '\0') return false;
+
     char *p = line;
     char *tok;
     char *endp;
 
-    /* Field 1: record tag (must be a single 'M') */
+    /* Field 1: record tag */
     tok = next_field(&p);
-    if (!tok || tok[0] == '\0' || tok[1] != '\0') return false;
-    if (tok[0] != 'M') return false;
-    msg_type_t type = MSG_DETECTION;
+    if (!tok || tok[0] != 'M' || tok[1] != '\0') return false;
 
     /* Field 2: material number (1..6) */
     tok = next_field(&p);
@@ -100,159 +102,167 @@ static bool parse_line(char *line, detection_t *out)
     bin_id_t bin = material_num_to_bin(mat);
     if (bin == BIN_UNKNOWN) return false;
 
-    /* Field 3: cx (signed integer) */
+    /* Field 3: cx */
     tok = next_field(&p);
     if (!tok || tok[0] == '\0') return false;
     long cx = strtol(tok, &endp, 10);
     if (*endp != '\0') return false;
+    if (cx < INT16_MIN || cx > INT16_MAX) return false;
 
-    /* Field 4: cy (signed integer) */
+    /* Field 4: cy */
     tok = next_field(&p);
     if (!tok || tok[0] == '\0') return false;
     long cy = strtol(tok, &endp, 10);
     if (*endp != '\0') return false;
+    if (cy < INT16_MIN || cy > INT16_MAX) return false;
 
-    /* Field 5: conf (float) */
+    /* Field 5: confidence */
     tok = next_field(&p);
     if (!tok || tok[0] == '\0') return false;
     float conf = strtof(tok, &endp);
     if (*endp != '\0') return false;
+    if (conf < 0.0f || conf > 1.0f) return false;
 
-    /* Field 6: cam_id (unsigned integer) */
+    /* Field 6: cam_id */
     tok = next_field(&p);
     if (!tok || tok[0] == '\0') return false;
-    long cam = strtol(tok, &endp, 10);
+    long cam_id = strtol(tok, &endp, 10);
     if (*endp != '\0') return false;
+    if (cam_id < 0 || cam_id > 255) return false;
 
-    /* No trailing fields */
+    /* No extra fields allowed */
     if (p != NULL) return false;
 
-    /* Range checks */
-    if (cx   < INT16_MIN || cx   > INT16_MAX) return false;
-    if (cy   < INT16_MIN || cy   > INT16_MAX) return false;
-    if (cam  < 0         || cam  > 255)       return false;
-    if (conf < 0.0f      || conf > 1.0f)      return false;
-
-    out->type   = type;
+    out->type   = MSG_DETECTION;
     out->bin    = bin;
     out->cx     = (int16_t)cx;
     out->cy     = (int16_t)cy;
     out->conf   = conf;
-    out->cam_id = (uint8_t)cam;
+    out->cam_id = (uint8_t)cam_id;
     return true;
 }
 
 
-/* ========================================================================
- * Reader: public read entry point
- * ======================================================================== */
+/* ----- Reader ----------------------------------------------------------- */
 bool pico_link_read_blocking(detection_t *out)
 {
-    for (;;) {
-        char c = uart_getc(s_uart);   /* blocks until a byte is ready */
+    /* Snapshot the unmodified line for CRC before parse_line mutates it. */
+    char raw[LINE_BUF_SIZE];
+    size_t raw_len = 0;
 
-        if (c == '\r') continue;      /* tolerate CRLF */
+    s_len = 0;
+    while (true) {
+        char c = uart_getc(s_uart);
+
+        /* Strip lone CR (CRLF tolerance). */
+        if (c == '\r') continue;
 
         if (c == '\n') {
-            if (s_len == 0) continue; /* ignore empty lines */
             s_buf[s_len] = '\0';
-            s_len = 0;
-            if (parse_line(s_buf, out)) {
-                /* Stamp liveness on success only; garbage lines don't
-                 * count as "received OK". */
-                s_last_rx_ms = to_ms_since_boot(get_absolute_time());
-                return true;
+            raw_len = s_len;
+            memcpy(raw, s_buf, raw_len);
+            raw[raw_len] = '\0';
+
+            if (s_len == 0) {
+                /* Empty line. Reset and wait for next. */
+                continue;
             }
+
+            bool ok = parse_line(s_buf, out);
+            s_len = 0;
+
+            if (ok) {
+                /* Stash raw line for CRC, update RX timestamp. */
+                memcpy(s_last_line, raw, raw_len);
+                s_last_line[raw_len] = '\0';
+                s_last_line_len = raw_len;
+                s_last_rx_ms = to_ms_since_boot(get_absolute_time());
+            }
+            return ok;
+        }
+
+        if (s_len < LINE_BUF_SIZE - 1) {
+            s_buf[s_len++] = c;
+        } else {
+            /* Overrun: discard up to next newline (resync). */
+            while (uart_getc(s_uart) != '\n') { }
+            s_len = 0;
             return false;
         }
-
-        /* Overrun: drop the rest of this line, resync on next '\n' */
-        if (s_len >= LINE_BUF_SIZE - 1) {
-            s_len = 0;
-            char d;
-            do { d = uart_getc(s_uart); } while (d != '\n');
-            continue;
-        }
-
-        s_buf[s_len++] = c;
     }
 }
 
 
-/* ========================================================================
- * Liveness getter
- * ======================================================================== */
-uint32_t pico_link_last_rx_ms(void)
-{
-    return s_last_rx_ms;
-}
+/* ----- FIFO transport (3 words per record) ------------------------------ */
 
-
-/* ========================================================================
- * Hardware multicore FIFO transport
- *
- * 3 words per detection:
- *     w0 = bin            (low 8 bits)
- *     w1 = cx (lo16) | cy (hi16)
- *     w2 = conf as raw float bits
- * ======================================================================== */
-
-static inline uint32_t float_to_bits(float f)
-{
-    uint32_t bits;
-    memcpy(&bits, &f, sizeof(bits));
-    return bits;
-}
-static inline float bits_to_float(uint32_t bits)
-{
-    float f;
-    memcpy(&f, &bits, sizeof(f));
-    return f;
-}
-
+/* Word 0:  [31:24]=cam_id  [23:8]=cx  [7:0]=bin
+ * Word 1:  [31:16]=cy(unused) [15:0]=cy
+ * Word 2:  conf reinterpreted as uint32 */
 void pico_link_fifo_push(const detection_t *det)
 {
-    uint32_t w0 = (uint32_t)det->bin & 0xFFu;
-    uint32_t w1 = ((uint32_t)(uint16_t)det->cx)
-                | ((uint32_t)(uint16_t)det->cy << 16);
-    uint32_t w2 = float_to_bits(det->conf);
+    uint32_t w0 = ((uint32_t)det->cam_id << 24)
+                | (((uint32_t)(uint16_t)det->cx) << 8)
+                | ((uint32_t)det->bin & 0xFF);
+    uint32_t w1 = (uint32_t)(uint16_t)det->cy;
+    uint32_t w2;
+    memcpy(&w2, &det->conf, sizeof(w2));
 
-    /* push_blocking only stalls when the 8-entry FIFO is full; the
-     * three calls go through back-to-back so framing is preserved. */
     multicore_fifo_push_blocking(w0);
     multicore_fifo_push_blocking(w1);
     multicore_fifo_push_blocking(w2);
 }
 
-static void fifo_unpack(uint32_t w0, uint32_t w1, uint32_t w2,
-                        detection_t *out)
-{
-    out->type   = MSG_DETECTION;
-    out->bin    = (bin_id_t)(w0 & 0xFFu);
-    out->cx     = (int16_t)(uint16_t)(w1 & 0xFFFFu);
-    out->cy     = (int16_t)(uint16_t)((w1 >> 16) & 0xFFFFu);
-    out->conf   = bits_to_float(w2);
-    out->cam_id = 0;   /* not transported */
-}
-
-void pico_link_fifo_pop(detection_t *out)
-{
-    uint32_t w0 = multicore_fifo_pop_blocking();
-    uint32_t w1 = multicore_fifo_pop_blocking();
-    uint32_t w2 = multicore_fifo_pop_blocking();
-    fifo_unpack(w0, w1, w2, out);
-}
-
 bool pico_link_fifo_try_pop(detection_t *out)
 {
+    /* Need 3 words atomically. If we don't see at least the first one
+     * available, bail without disturbing the FIFO. */
     if (!multicore_fifo_rvalid()) return false;
 
-    /* First word is here; remaining two from the same record are
-     * already on their way (core1 pushes the trio back-to-back), so
-     * we can safely use blocking pops for w1 and w2. */
     uint32_t w0 = multicore_fifo_pop_blocking();
     uint32_t w1 = multicore_fifo_pop_blocking();
     uint32_t w2 = multicore_fifo_pop_blocking();
-    fifo_unpack(w0, w1, w2, out);
+
+    out->type   = MSG_DETECTION;
+    out->bin    = (bin_id_t)(w0 & 0xFF);
+    out->cx     = (int16_t)((w0 >> 8) & 0xFFFF);
+    out->cam_id = (uint8_t)((w0 >> 24) & 0xFF);
+    out->cy     = (int16_t)(w1 & 0xFFFF);
+    memcpy(&out->conf, &w2, sizeof(out->conf));
     return true;
+}
+
+
+/* ----- ACK / DONE sender ------------------------------------------------ */
+
+uint8_t pico_link_compute_crc(const char *buf, size_t len)
+{
+    uint8_t crc = 0;
+    for (size_t i = 0; i < len; i++) {
+        char c = buf[i];
+        if (c == '\n') break;   /* exclude trailing newline if present */
+        crc ^= (uint8_t)c;
+    }
+    return crc;
+}
+
+uint8_t pico_link_last_line_crc(void)
+{
+    if (s_last_line_len == 0) return 0;
+    return pico_link_compute_crc(s_last_line, s_last_line_len);
+}
+
+void pico_link_send_ack(uint8_t crc)
+{
+    if (s_uart == NULL) return;
+    char out[8];
+    int n = snprintf(out, sizeof(out), "A,%02x\n", crc);
+    if (n > 0) uart_write_blocking(s_uart, (const uint8_t *)out, (size_t)n);
+}
+
+void pico_link_send_done(uint8_t crc)
+{
+    if (s_uart == NULL) return;
+    char out[8];
+    int n = snprintf(out, sizeof(out), "D,%02x\n", crc);
+    if (n > 0) uart_write_blocking(s_uart, (const uint8_t *)out, (size_t)n);
 }

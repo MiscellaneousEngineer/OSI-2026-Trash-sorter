@@ -12,7 +12,7 @@ if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
     string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
            CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
   else()
-    set(CMAKE_INSTALL_CONFIG_NAME "Debug")
+    set(CMAKE_INSTALL_CONFIG_NAME "Release")
   endif()
   message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
 endif()
@@ -104,22 +104,22 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/pico_platform/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2040/pico_platform/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/hardware_regs/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2040/hardware_regs/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/hardware_structs/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2040/hardware_structs/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2350/boot_stage2/cmake_install.cmake")
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2040/boot_stage2/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
@@ -204,6 +204,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_rtc/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_spi/cmake_install.cmake")
 endif()
 
@@ -250,31 +255,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_xosc/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_powman/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_riscv_platform_timer/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_sha256/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_dcp/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/hardware_rcp/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
@@ -380,11 +360,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/pico_rand/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Users/Nicholas/VSCODE/OSI-2026-Trash-sorter/CODE/ControlBoard_Code/build/pico-sdk/src/rp2_common/pico_sha256/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
