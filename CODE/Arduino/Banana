@@ -1,26 +1,109 @@
+/* ==========================================================================
+ * OSI-2026 - Arduino Uno firmware
+ * --------------------------------------------------------------------------
+ * Two clearly separated subsystems sharing one USB serial:
+ *
+ *   SECTION 1: ULTRASONIC      DFRobot URM09 V1.0 ANALOG, 5x on A0..A4
+ *   SECTION 2: RAMP / SERVOS   SG90 x2 on D5/D6, mirrored (B = 180 - A)
+ *   SECTION 3: SERIAL + LOOP   command parser + main loop
+ *
+ * Wire protocol with the Jetson:
+ *   Arduino -> Jetson:  "d1,d2,d3,d4,d5\n"   ultrasonic frame, ~10 Hz
+ *                       "# <anything>\n"     diagnostic / echo lines
+ *   Jetson  -> Arduino: "ang <deg>\n"        set both servos (B mirrored)
+ *                       "A <deg>\n"          set servo A only
+ *                       "B <deg>\n"          set servo B only
+ *                       "RAMP\n"             one-shot open/hold/close
+ * ========================================================================== */
+
 #include <Servo.h>
 
-// ---------------- Ultrasonic config ---------------------------------------
+
+/* ============================================================================
+ * SECTION 1 -- ULTRASONIC (DFRobot URM09 V1.0 ANALOG)
+ * ----------------------------------------------------------------------------
+ * Module: Gravity URM09 V1.0 (DFRobot SEN0307), 2-500 cm range, ANALOG out.
+ *
+ * The URM09 is NOT an HC-SR04. It does not need a trigger pulse, and there
+ * is no echo pulse to time. The OUT pin holds a steady voltage proportional
+ * to the measured distance: Vout = Vcc * (distance / max_range). Read with
+ * analogRead(). Ratiometric to Vcc, so the ADC result is independent of
+ * Vcc variation -- 0..1023 maps directly to 0..max_range.
+ *
+ * Range is selected by the solder jumpers on the BACK of the breakout:
+ *   factory short    -> 150 cm  (URM09_RANGE_MM = 1500)
+ *   middle jumper    -> 300 cm  (URM09_RANGE_MM = 3000)
+ *   far jumper       -> 500 cm  (URM09_RANGE_MM = 5000)
+ * Default is whatever DFRobot ships, which is typically 500 cm. If your
+ * readings look 3x too large or too small, you have the wrong constant here.
+ *
+ * Pins:
+ *   VCC -> Arduino 5V
+ *   GND -> Arduino GND
+ *   OUT -> Arduino A0, A1, A2, A3, A4   (one sensor per analog pin)
+ * ============================================================================ */
+
 const uint8_t  NUM_SENSORS              = 5;
 const uint8_t  SENSOR_PINS[NUM_SENSORS] = {A0, A1, A2, A3, A4};
-const uint16_t SAMPLE_INTERVAL_MS       = 100;     // ~10 Hz
-const unsigned long PING_TIMEOUT_US     = 30000UL; // ~5 m max range
+const uint16_t SAMPLE_INTERVAL_MS       = 100;          // ~10 Hz emit
+const long     URM09_RANGE_MM           = 5000;         // 1500 / 3000 / 5000
 
-// ---------------- Ramp / servo config -------------------------------------
+// Noise floor / saturation thresholds for the raw ADC value.
+//   Values right at 0 usually mean the sensor isn't powered / OUT not wired.
+//   Values right at 1023 usually mean nothing in range (max distance saturated).
+// Both get reported as -1 so the Jetson rolling-average code drops them
+// instead of feeding bogus extremes into the bin fullness math.
+const int URM09_NOISE_FLOOR_RAW         = 2;
+const int URM09_SATURATED_RAW           = 1021;
+
+long readDistanceMM(uint8_t pin) {
+    int raw = analogRead(pin);
+    if (raw <= URM09_NOISE_FLOOR_RAW) return -1;   // sensor disconnected / off
+    if (raw >= URM09_SATURATED_RAW)   return -1;   // target beyond max range
+    // Linear: ratiometric 10-bit ADC, 0..1023 -> 0..URM09_RANGE_MM
+    return ((long)raw * URM09_RANGE_MM) / 1023L;
+}
+
+void emitDistances() {
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        long mm = readDistanceMM(SENSOR_PINS[i]);
+        Serial.print(mm);
+        if (i < NUM_SENSORS - 1) Serial.print(',');
+    }
+    Serial.print('\n');
+}
+
+
+/* ============================================================================
+ * SECTION 2 -- RAMP / SERVOS (SG90 x2, mirrored)
+ * ----------------------------------------------------------------------------
+ * Two SG90 hobby servos drive the upper ramp. They're mounted facing each
+ * other, so servo B's commanded angle is always (180 - servo A's angle) --
+ * the rampWrite() helper does that mirroring in one call.
+ *
+ * No interaction with SECTION 1. Different pins (D5, D6 vs A0..A4),
+ * different peripheral (Timer1 PWM via Servo.h vs the ADC), no resource
+ * contention. This subsystem can be added/removed without touching the
+ * ultrasonic code at all.
+ *
+ * Wiring:
+ *   Servo A  signal -> D5
+ *   Servo B  signal -> D6
+ *   Servo V+ -> 5 V (Uno rail or external supply)
+ *   Servo GND, external supply GND, Arduino GND all tied together
+ *
+ * Angle convention (matches Jetson servo_ramp.py):
+ *   ang 0    -> ramp CLOSED (resting)
+ *   ang 100  -> ramp OPEN   (item drops through)
+ * ============================================================================ */
+
 const uint8_t  SERVO_A_PIN       = 5;
 const uint8_t  SERVO_B_PIN       = 6;
 
-// Servo A angles. Servo B is driven to (180 - A) so it mirrors.
-// MUST MATCH the Jetson's ANG_CLOSED / ANG_OPEN in servo_ramp.py, otherwise
-// the servos snap from one position to the other on every boot/reset
-// (firmware writes RAMP_CLOSED_DEG in setup, Jetson then sends "ang 0"
-// from its first ramp trigger -- if they disagree, that's a visible kick).
-const uint8_t  RAMP_CLOSED_DEG   = 0;     // matches Jetson ANG_CLOSED
-const uint8_t  RAMP_OPEN_DEG     = 100;   // matches Jetson ANG_OPEN
+const uint8_t  RAMP_CLOSED_DEG   = 0;       // matches Jetson ANG_CLOSED
+const uint8_t  RAMP_OPEN_DEG     = 100;     // matches Jetson ANG_OPEN
+const uint16_t RAMP_HOLD_MS      = 1500;    // used only by "RAMP\n" one-shot
 
-const uint16_t RAMP_HOLD_MS      = 1500;  // time the ramp stays open
-
-// ---------------- Servo objects + state -----------------------------------
 Servo servoA, servoB;
 
 enum RampState : uint8_t { RAMP_IDLE, RAMP_OPEN };
@@ -29,11 +112,11 @@ unsigned long rampCloseAt = 0;
 
 inline void rampWrite(uint8_t angleA) {
     servoA.write(angleA);
-    servoB.write(180 - angleA);          // mirrored partner
+    servoB.write(180 - angleA);
 }
 
 void rampTrigger() {
-    if (rampState != RAMP_IDLE) return;  // ignore re-triggers while open
+    if (rampState != RAMP_IDLE) return;
     rampWrite(RAMP_OPEN_DEG);
     rampState   = RAMP_OPEN;
     rampCloseAt = millis() + RAMP_HOLD_MS;
@@ -48,51 +131,16 @@ void rampUpdate() {
     }
 }
 
-// ---------------- Ultrasonic (single-wire HC-SR04) ------------------------
-long pingMM(uint8_t pin) {
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, LOW);
-    delayMicroseconds(2);
-    digitalWrite(pin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(pin, LOW);
-    pinMode(pin, INPUT);
-    unsigned long us = pulseIn(pin, HIGH, PING_TIMEOUT_US);
-    if (us == 0) return -1;                       // no echo / out of range
-    return (long)((us * 343L) / 2000L);           // us -> mm  (v_sound 343 m/s)
-}
 
-void emitDistances() {
-    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
-        long mm = pingMM(SENSOR_PINS[i]);
-        Serial.print(mm);
-        if (i < NUM_SENSORS - 1) Serial.print(',');
-    }
-    Serial.print('\n');
-}
+/* ============================================================================
+ * SECTION 3 -- SERIAL PARSER + MAIN LOOP
+ * ============================================================================ */
 
-// ---------------- Serial command parser -----------------------------------
 char rxBuf[16];
 uint8_t rxLen = 0;
 
-void handleSerial() {
-    while (Serial.available()) {
-        char c = (char)Serial.read();
-        if (c == '\r') continue;
-        if (c == '\n') {
-            rxBuf[rxLen] = '\0';
-            if (rxLen > 0) processCommand(rxBuf);
-            rxLen = 0;
-        } else if (rxLen < sizeof(rxBuf) - 1) {
-            rxBuf[rxLen++] = c;
-        } else {
-            rxLen = 0;                   // overflow -> drop
-        }
-    }
-}
-
 void processCommand(char *line) {
-    while (*line == ' ') line++;          // skip leading spaces
+    while (*line == ' ') line++;
 
     if (strcasecmp(line, "RAMP") == 0) {
         rampTrigger();
@@ -117,21 +165,34 @@ void processCommand(char *line) {
     }
 }
 
-// ---------------- Main ----------------------------------------------------
+void handleSerial() {
+    while (Serial.available()) {
+        char c = (char)Serial.read();
+        if (c == '\r') continue;
+        if (c == '\n') {
+            rxBuf[rxLen] = '\0';
+            if (rxLen > 0) processCommand(rxBuf);
+            rxLen = 0;
+        } else if (rxLen < sizeof(rxBuf) - 1) {
+            rxBuf[rxLen++] = c;
+        } else {
+            rxLen = 0;                       // overflow -> drop
+        }
+    }
+}
+
 unsigned long nextSampleAt = 0;
 
 void setup() {
     Serial.begin(115200);
 
+    // ---- Ramp init: attach servos and snap to closed position. -----------
     servoA.attach(SERVO_A_PIN);
     servoB.attach(SERVO_B_PIN);
-    rampWrite(RAMP_CLOSED_DEG);          // start closed (= ANG_CLOSED on Jetson)
+    rampWrite(RAMP_CLOSED_DEG);
 
-    // Drive HC-SR04 pins low at boot so they're in a known state.
-    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
-        pinMode(SENSOR_PINS[i], OUTPUT);
-        digitalWrite(SENSOR_PINS[i], LOW);
-    }
+    // ---- Ultrasonic init: nothing. analogRead handles pin config itself. -
+    // (URM09 OUT lines are inputs by power-on default.)
 
     Serial.println(F("# osi2026 uno ready"));
 }
