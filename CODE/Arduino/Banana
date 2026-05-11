@@ -110,9 +110,60 @@ enum RampState : uint8_t { RAMP_IDLE, RAMP_OPEN };
 RampState     rampState   = RAMP_IDLE;
 unsigned long rampCloseAt = 0;
 
+// Smooth-move animation state. Set by startSmoothMove(), advanced every
+// loop() iteration by animUpdate(). Always linear interpolation; if you
+// want easing, swap the math in animUpdate(). Non-blocking -- the main
+// loop keeps emitting ultrasonics and handling serial during the animation.
+bool          animActive          = false;
+unsigned long animStartMs         = 0;
+unsigned long animDurationMs      = 0;
+uint8_t       animStartAngle      = 0;
+uint8_t       animTargetAngle     = 0;
+// Last commanded angle on servo A. Used as the animation's start point.
+uint8_t       lastCommandedAngle  = RAMP_CLOSED_DEG;
+
 inline void rampWrite(uint8_t angleA) {
+    animActive = false;            // any snap command cancels a running animation
     servoA.write(angleA);
     servoB.write(180 - angleA);
+    lastCommandedAngle = angleA;
+}
+
+void startSmoothMove(uint8_t targetAngle, unsigned long durationMs) {
+    if (durationMs == 0) {
+        rampWrite(targetAngle);
+        return;
+    }
+    animActive       = true;
+    animStartMs      = millis();
+    animDurationMs   = durationMs;
+    animStartAngle   = lastCommandedAngle;
+    animTargetAngle  = targetAngle;
+    // First frame written immediately so there's no perceptible step at start.
+    servoA.write(animStartAngle);
+    servoB.write(180 - animStartAngle);
+}
+
+void animUpdate() {
+    if (!animActive) return;
+    unsigned long elapsed = millis() - animStartMs;
+    if (elapsed >= animDurationMs) {
+        // Snap to final value and stop animating.
+        servoA.write(animTargetAngle);
+        servoB.write(180 - animTargetAngle);
+        lastCommandedAngle = animTargetAngle;
+        animActive = false;
+        return;
+    }
+    // Linear interpolation. Cast through long to avoid uint8_t overflow
+    // when start > target.
+    long start  = animStartAngle;
+    long target = animTargetAngle;
+    long cur    = start + ((target - start) * (long)elapsed) / (long)animDurationMs;
+    if (cur < 0)   cur = 0;
+    if (cur > 180) cur = 180;
+    servoA.write((uint8_t)cur);
+    servoB.write(180 - (uint8_t)cur);
 }
 
 void rampTrigger() {
@@ -147,11 +198,28 @@ void processCommand(char *line) {
         return;
     }
     if (strncasecmp(line, "ANG", 3) == 0) {
-        int deg = atoi(line + 3);
+        // Format: "ang <deg>"            -> snap instantly (original)
+        //         "ang <deg> <duration>" -> smooth move over <duration> ms
+        char *p = line + 3;
+        while (*p == ' ') p++;
+        int deg = atoi(p);
         if (deg < 0 || deg > 180) return;
-        rampWrite((uint8_t)deg);
-        Serial.print(F("# ang A=")); Serial.print(deg);
-        Serial.print(F(" B="));      Serial.println(180 - deg);
+        // Advance past the degree number, then any spaces, to the optional duration.
+        while (*p == '-' || (*p >= '0' && *p <= '9')) p++;
+        while (*p == ' ') p++;
+        long durationMs = (*p) ? atol(p) : 0;
+        if (durationMs < 0) durationMs = 0;
+        if (durationMs == 0) {
+            rampWrite((uint8_t)deg);
+            Serial.print(F("# ang A=")); Serial.print(deg);
+            Serial.print(F(" B="));      Serial.println(180 - deg);
+        } else {
+            startSmoothMove((uint8_t)deg, (unsigned long)durationMs);
+            Serial.print(F("# ang slow A=")); Serial.print(deg);
+            Serial.print(F(" B="));           Serial.print(180 - deg);
+            Serial.print(F(" over "));        Serial.print(durationMs);
+            Serial.println(F("ms"));
+        }
         return;
     }
     char k = line[0];
@@ -200,6 +268,7 @@ void setup() {
 void loop() {
     handleSerial();
     rampUpdate();
+    animUpdate();                        // advance any in-progress smooth move
 
     unsigned long now = millis();
     if ((long)(now - nextSampleAt) >= 0) {
