@@ -1,0 +1,278 @@
+/* ==========================================================================
+ * OSI-2026 - Arduino Uno firmware
+ * --------------------------------------------------------------------------
+ * Two clearly separated subsystems sharing one USB serial:
+ *
+ *   SECTION 1: ULTRASONIC      DFRobot URM09 V1.0 ANALOG, 5x on A0..A4
+ *   SECTION 2: RAMP / SERVOS   SG90 x2 on D5/D6, mirrored (B = 180 - A)
+ *   SECTION 3: SERIAL + LOOP   command parser + main loop
+ *
+ * Wire protocol with the Jetson:
+ *   Arduino -> Jetson:  "d1,d2,d3,d4,d5\n"   ultrasonic frame, ~10 Hz
+ *                       "# <anything>\n"     diagnostic / echo lines
+ *   Jetson  -> Arduino: "ang <deg>\n"        set both servos (B mirrored)
+ *                       "A <deg>\n"          set servo A only
+ *                       "B <deg>\n"          set servo B only
+ *                       "RAMP\n"             one-shot open/hold/close
+ * ========================================================================== */
+
+#include <Servo.h>
+
+
+/* ============================================================================
+ * SECTION 1 -- ULTRASONIC (DFRobot URM09 V1.0 ANALOG)
+ * ----------------------------------------------------------------------------
+ * Module: Gravity URM09 V1.0 (DFRobot SEN0307), 2-500 cm range, ANALOG out.
+ *
+ * The URM09 is NOT an HC-SR04. It does not need a trigger pulse, and there
+ * is no echo pulse to time. The OUT pin holds a steady voltage proportional
+ * to the measured distance: Vout = Vcc * (distance / max_range). Read with
+ * analogRead(). Ratiometric to Vcc, so the ADC result is independent of
+ * Vcc variation -- 0..1023 maps directly to 0..max_range.
+ *
+ * Range is selected by the solder jumpers on the BACK of the breakout:
+ *   factory short    -> 150 cm  (URM09_RANGE_MM = 1500)
+ *   middle jumper    -> 300 cm  (URM09_RANGE_MM = 3000)
+ *   far jumper       -> 500 cm  (URM09_RANGE_MM = 5000)
+ * Default is whatever DFRobot ships, which is typically 500 cm. If your
+ * readings look 3x too large or too small, you have the wrong constant here.
+ *
+ * Pins:
+ *   VCC -> Arduino 5V
+ *   GND -> Arduino GND
+ *   OUT -> Arduino A0, A1, A2, A3, A4   (one sensor per analog pin)
+ * ============================================================================ */
+
+const uint8_t  NUM_SENSORS              = 5;
+const uint8_t  SENSOR_PINS[NUM_SENSORS] = {A0, A1, A2, A3, A4};
+const uint16_t SAMPLE_INTERVAL_MS       = 100;          // ~10 Hz emit
+const long     URM09_RANGE_MM           = 5000;         // 1500 / 3000 / 5000
+
+// Noise floor / saturation thresholds for the raw ADC value.
+//   Values right at 0 usually mean the sensor isn't powered / OUT not wired.
+//   Values right at 1023 usually mean nothing in range (max distance saturated).
+// Both get reported as -1 so the Jetson rolling-average code drops them
+// instead of feeding bogus extremes into the bin fullness math.
+const int URM09_NOISE_FLOOR_RAW         = 2;
+const int URM09_SATURATED_RAW           = 1021;
+
+long readDistanceMM(uint8_t pin) {
+    int raw = analogRead(pin);
+    if (raw <= URM09_NOISE_FLOOR_RAW) return -1;   // sensor disconnected / off
+    if (raw >= URM09_SATURATED_RAW)   return -1;   // target beyond max range
+    // Linear: ratiometric 10-bit ADC, 0..1023 -> 0..URM09_RANGE_MM
+    return ((long)raw * URM09_RANGE_MM) / 1023L;
+}
+
+void emitDistances() {
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        long mm = readDistanceMM(SENSOR_PINS[i]);
+        Serial.print(mm);
+        if (i < NUM_SENSORS - 1) Serial.print(',');
+    }
+    Serial.print('\n');
+}
+
+
+/* ============================================================================
+ * SECTION 2 -- RAMP / SERVOS (SG90 x2, mirrored)
+ * ----------------------------------------------------------------------------
+ * Two SG90 hobby servos drive the upper ramp. They're mounted facing each
+ * other, so servo B's commanded angle is always (180 - servo A's angle) --
+ * the rampWrite() helper does that mirroring in one call.
+ *
+ * No interaction with SECTION 1. Different pins (D5, D6 vs A0..A4),
+ * different peripheral (Timer1 PWM via Servo.h vs the ADC), no resource
+ * contention. This subsystem can be added/removed without touching the
+ * ultrasonic code at all.
+ *
+ * Wiring:
+ *   Servo A  signal -> D5
+ *   Servo B  signal -> D6
+ *   Servo V+ -> 5 V (Uno rail or external supply)
+ *   Servo GND, external supply GND, Arduino GND all tied together
+ *
+ * Angle convention (matches Jetson servo_ramp.py):
+ *   ang 0    -> ramp CLOSED (resting)
+ *   ang 100  -> ramp OPEN   (item drops through)
+ * ============================================================================ */
+
+const uint8_t  SERVO_A_PIN       = 5;
+const uint8_t  SERVO_B_PIN       = 6;
+
+const uint8_t  RAMP_CLOSED_DEG   = 0;       // matches Jetson ANG_CLOSED
+const uint8_t  RAMP_OPEN_DEG     = 100;     // matches Jetson ANG_OPEN
+const uint16_t RAMP_HOLD_MS      = 1500;    // used only by "RAMP\n" one-shot
+
+Servo servoA, servoB;
+
+enum RampState : uint8_t { RAMP_IDLE, RAMP_OPEN };
+RampState     rampState   = RAMP_IDLE;
+unsigned long rampCloseAt = 0;
+
+// Smooth-move animation state. Set by startSmoothMove(), advanced every
+// loop() iteration by animUpdate(). Always linear interpolation; if you
+// want easing, swap the math in animUpdate(). Non-blocking -- the main
+// loop keeps emitting ultrasonics and handling serial during the animation.
+bool          animActive          = false;
+unsigned long animStartMs         = 0;
+unsigned long animDurationMs      = 0;
+uint8_t       animStartAngle      = 0;
+uint8_t       animTargetAngle     = 0;
+// Last commanded angle on servo A. Used as the animation's start point.
+uint8_t       lastCommandedAngle  = RAMP_CLOSED_DEG;
+
+inline void rampWrite(uint8_t angleA) {
+    animActive = false;            // any snap command cancels a running animation
+    servoA.write(angleA);
+    servoB.write(180 - angleA);
+    lastCommandedAngle = angleA;
+}
+
+void startSmoothMove(uint8_t targetAngle, unsigned long durationMs) {
+    if (durationMs == 0) {
+        rampWrite(targetAngle);
+        return;
+    }
+    animActive       = true;
+    animStartMs      = millis();
+    animDurationMs   = durationMs;
+    animStartAngle   = lastCommandedAngle;
+    animTargetAngle  = targetAngle;
+    // First frame written immediately so there's no perceptible step at start.
+    servoA.write(animStartAngle);
+    servoB.write(180 - animStartAngle);
+}
+
+void animUpdate() {
+    if (!animActive) return;
+    unsigned long elapsed = millis() - animStartMs;
+    if (elapsed >= animDurationMs) {
+        // Snap to final value and stop animating.
+        servoA.write(animTargetAngle);
+        servoB.write(180 - animTargetAngle);
+        lastCommandedAngle = animTargetAngle;
+        animActive = false;
+        return;
+    }
+    // Linear interpolation. Cast through long to avoid uint8_t overflow
+    // when start > target.
+    long start  = animStartAngle;
+    long target = animTargetAngle;
+    long cur    = start + ((target - start) * (long)elapsed) / (long)animDurationMs;
+    if (cur < 0)   cur = 0;
+    if (cur > 180) cur = 180;
+    servoA.write((uint8_t)cur);
+    servoB.write(180 - (uint8_t)cur);
+}
+
+void rampTrigger() {
+    if (rampState != RAMP_IDLE) return;
+    rampWrite(RAMP_OPEN_DEG);
+    rampState   = RAMP_OPEN;
+    rampCloseAt = millis() + RAMP_HOLD_MS;
+    Serial.println(F("# ramp:open"));
+}
+
+void rampUpdate() {
+    if (rampState == RAMP_OPEN && (long)(millis() - rampCloseAt) >= 0) {
+        rampWrite(RAMP_CLOSED_DEG);
+        rampState = RAMP_IDLE;
+        Serial.println(F("# ramp:idle"));
+    }
+}
+
+
+/* ============================================================================
+ * SECTION 3 -- SERIAL PARSER + MAIN LOOP
+ * ============================================================================ */
+
+char rxBuf[16];
+uint8_t rxLen = 0;
+
+void processCommand(char *line) {
+    while (*line == ' ') line++;
+
+    if (strcasecmp(line, "RAMP") == 0) {
+        rampTrigger();
+        return;
+    }
+    if (strncasecmp(line, "ANG", 3) == 0) {
+        // Format: "ang <deg>"            -> snap instantly (original)
+        //         "ang <deg> <duration>" -> smooth move over <duration> ms
+        char *p = line + 3;
+        while (*p == ' ') p++;
+        int deg = atoi(p);
+        if (deg < 0 || deg > 180) return;
+        // Advance past the degree number, then any spaces, to the optional duration.
+        while (*p == '-' || (*p >= '0' && *p <= '9')) p++;
+        while (*p == ' ') p++;
+        long durationMs = (*p) ? atol(p) : 0;
+        if (durationMs < 0) durationMs = 0;
+        if (durationMs == 0) {
+            rampWrite((uint8_t)deg);
+            Serial.print(F("# ang A=")); Serial.print(deg);
+            Serial.print(F(" B="));      Serial.println(180 - deg);
+        } else {
+            startSmoothMove((uint8_t)deg, (unsigned long)durationMs);
+            Serial.print(F("# ang slow A=")); Serial.print(deg);
+            Serial.print(F(" B="));           Serial.print(180 - deg);
+            Serial.print(F(" over "));        Serial.print(durationMs);
+            Serial.println(F("ms"));
+        }
+        return;
+    }
+    char k = line[0];
+    if (k == 'A' || k == 'a' || k == 'B' || k == 'b') {
+        int deg = atoi(line + 1);
+        if (deg < 0 || deg > 180) return;
+        if (k == 'A' || k == 'a') { servoA.write(deg);
+            Serial.print(F("# A=")); Serial.println(deg); }
+        else                      { servoB.write(deg);
+            Serial.print(F("# B=")); Serial.println(deg); }
+    }
+}
+
+void handleSerial() {
+    while (Serial.available()) {
+        char c = (char)Serial.read();
+        if (c == '\r') continue;
+        if (c == '\n') {
+            rxBuf[rxLen] = '\0';
+            if (rxLen > 0) processCommand(rxBuf);
+            rxLen = 0;
+        } else if (rxLen < sizeof(rxBuf) - 1) {
+            rxBuf[rxLen++] = c;
+        } else {
+            rxLen = 0;                       // overflow -> drop
+        }
+    }
+}
+
+unsigned long nextSampleAt = 0;
+
+void setup() {
+    Serial.begin(115200);
+
+    // ---- Ramp init: attach servos and snap to closed position. -----------
+    servoA.attach(SERVO_A_PIN);
+    servoB.attach(SERVO_B_PIN);
+    rampWrite(RAMP_CLOSED_DEG);
+
+    // ---- Ultrasonic init: nothing. analogRead handles pin config itself. -
+    // (URM09 OUT lines are inputs by power-on default.)
+
+    Serial.println(F("# osi2026 uno ready"));
+}
+
+void loop() {
+    handleSerial();
+    rampUpdate();
+    animUpdate();                        // advance any in-progress smooth move
+
+    unsigned long now = millis();
+    if ((long)(now - nextSampleAt) >= 0) {
+        nextSampleAt = now + SAMPLE_INTERVAL_MS;
+        emitDistances();
+    }
+}

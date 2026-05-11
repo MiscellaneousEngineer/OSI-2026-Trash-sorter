@@ -1,0 +1,137 @@
+
+
+#include <Servo.h>
+
+const uint8_t  NUM_SENSORS              = 5;
+const uint8_t  SENSOR_PINS[NUM_SENSORS] = {A0, A1, A2, A3, A4};
+const uint16_t SAMPLE_INTERVAL_MS       = 100;     // ~10 Hz
+const unsigned long PING_TIMEOUT_US     = 30000UL; // ~5 m max range
+
+const uint8_t  SERVO_A_PIN       = 5;
+const uint8_t  SERVO_B_PIN       = 6;
+
+const uint8_t  RAMP_CLOSED_DEG   = 10;
+const uint8_t  RAMP_OPEN_DEG     = 90;
+
+const uint16_t RAMP_TRAVEL_MS    = 600;   // time allowed for each move
+const uint16_t RAMP_HOLD_MS      = 1500;  // time the ramp stays open
+const uint16_t RAMP_COOLDOWN_MS  = 300;   // re-trigger lockout after closing
+
+Servo servoA, servoB;
+
+enum RampState : uint8_t { RAMP_IDLE, RAMP_OPENING, RAMP_OPEN,
+                           RAMP_CLOSING, RAMP_COOLDOWN };
+RampState     rampState        = RAMP_IDLE;
+unsigned long rampNextEventAt  = 0;
+
+inline void rampWrite(uint8_t angleA) {
+    servoA.write(angleA);
+    servoB.write(180 - angleA);          // mirrored partner
+}
+
+void rampTrigger() {
+    if (rampState != RAMP_IDLE) return;  // silently ignore re-triggers
+    rampWrite(RAMP_OPEN_DEG);
+    rampState       = RAMP_OPENING;
+    rampNextEventAt = millis() + RAMP_TRAVEL_MS;
+    Serial.println(F("# ramp:opening"));
+}
+
+void rampUpdate() {
+    if ((long)(millis() - rampNextEventAt) < 0) return;
+    unsigned long now = millis();
+    switch (rampState) {
+        case RAMP_OPENING:
+            rampState       = RAMP_OPEN;
+            rampNextEventAt = now + RAMP_HOLD_MS;
+            Serial.println(F("# ramp:open"));
+            break;
+        case RAMP_OPEN:
+            rampWrite(RAMP_CLOSED_DEG);
+            rampState       = RAMP_CLOSING;
+            rampNextEventAt = now + RAMP_TRAVEL_MS;
+            Serial.println(F("# ramp:closing"));
+            break;
+        case RAMP_CLOSING:
+            rampState       = RAMP_COOLDOWN;
+            rampNextEventAt = now + RAMP_COOLDOWN_MS;
+            break;
+        case RAMP_COOLDOWN:
+            rampState = RAMP_IDLE;
+            Serial.println(F("# ramp:idle"));
+            break;
+        default: break;
+    }
+}
+
+long pingMM(uint8_t pin) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(pin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(pin, LOW);
+    pinMode(pin, INPUT);
+    unsigned long us = pulseIn(pin, HIGH, PING_TIMEOUT_US);
+    if (us == 0) return -1;                       // no echo / out of range
+    return (long)((us * 343L) / 2000L);           // µs → mm  (v_sound 343 m/s)
+}
+
+void emitDistances() {
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        long mm = pingMM(SENSOR_PINS[i]);
+        Serial.print(mm);
+        if (i < NUM_SENSORS - 1) Serial.print(',');
+    }
+    Serial.print('\n');
+}
+
+char rxBuf[16];
+uint8_t rxLen = 0;
+
+void handleSerial() {
+    while (Serial.available()) {
+        char c = (char)Serial.read();
+        if (c == '\r') continue;
+        if (c == '\n') {
+            rxBuf[rxLen] = '\0';
+            if (rxLen > 0 && strcasecmp(rxBuf, "RAMP") == 0) {
+                rampTrigger();
+            }
+            rxLen = 0;
+        } else if (rxLen < sizeof(rxBuf) - 1) {
+            rxBuf[rxLen++] = c;
+        } else {
+            rxLen = 0;                   // overflow → drop
+        }
+    }
+}
+
+unsigned long nextSampleAt = 0;
+
+void setup() {
+    Serial.begin(115200);
+
+    servoA.attach(SERVO_A_PIN);
+    servoB.attach(SERVO_B_PIN);
+    rampWrite(RAMP_CLOSED_DEG);          // start closed
+
+    // Drive HC-SR04 pins low at boot so they're in a known state.
+    for (uint8_t i = 0; i < NUM_SENSORS; i++) {
+        pinMode(SENSOR_PINS[i], OUTPUT);
+        digitalWrite(SENSOR_PINS[i], LOW);
+    }
+
+    Serial.println(F("# osi2026 uno ready"));
+}
+
+void loop() {
+    handleSerial();
+    rampUpdate();
+
+    unsigned long now = millis();
+    if ((long)(now - nextSampleAt) >= 0) {
+        nextSampleAt = now + SAMPLE_INTERVAL_MS;
+        emitDistances();
+    }
+}
